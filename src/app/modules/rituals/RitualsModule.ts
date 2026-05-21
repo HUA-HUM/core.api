@@ -8,8 +8,10 @@ import { CreateRitualInteractor } from '../../../core/interactors/rituals/Create
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
 import { RitualsService } from '../../services/rituals/RitualsService';
+import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
 
 @Module({
+  imports: [JwtAuthModule],
   controllers: [RitualsController],
   providers: [
     {

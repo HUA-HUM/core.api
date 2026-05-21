@@ -1,59 +1,59 @@
-import { Body, Controller, Get, Headers, Param, Post } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { CreateRitualDto } from '../../dtos/rituals/CreateRitualDto';
 import { RitualResponseDto } from '../../dtos/rituals/RitualResponseDto';
 import { RitualsService } from '../../services/rituals/RitualsService';
+import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
+import type { AuthenticatedRequest } from '../../services/jwtAuth/guards/JwtAuthGuard';
 
 @ApiTags('rituals')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('rituals')
 export class RitualsController {
   constructor(private readonly ritualsService: RitualsService) {}
 
   @Get()
   @ApiOperation({ summary: 'List rituals for the authenticated user' })
-  @ApiHeader({
-    name: 'x-user-id',
-    required: true,
-    description: 'Temporary user id header until JwtAuthGuard is added',
-  })
   @ApiResponse({ status: 200, type: [RitualResponseDto] })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async list(
-    @Headers('x-user-id') userId: string,
+    @Req() request: AuthenticatedRequest,
   ): Promise<RitualResponseDto[]> {
-    const rituals = await this.ritualsService.listByUserId(userId);
+    const rituals = await this.ritualsService.listByUserId(
+      request.authUser.id,
+    );
     return rituals.map((ritual) => RitualResponseDto.fromEntity(ritual));
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a ritual by id for the authenticated user' })
-  @ApiHeader({
-    name: 'x-user-id',
-    required: true,
-    description: 'Temporary user id header until JwtAuthGuard is added',
-  })
   @ApiResponse({ status: 200, type: RitualResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async getById(
-    @Headers('x-user-id') userId: string,
+    @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
   ): Promise<RitualResponseDto> {
-    const ritual = await this.ritualsService.getById(userId, id);
+    const ritual = await this.ritualsService.getById(request.authUser.id, id);
     return RitualResponseDto.fromEntity(ritual);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a ritual for the authenticated user' })
-  @ApiHeader({
-    name: 'x-user-id',
-    required: true,
-    description: 'Temporary user id header until JwtAuthGuard is added',
-  })
   @ApiResponse({ status: 201, type: RitualResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async create(
-    @Headers('x-user-id') userId: string,
+    @Req() request: AuthenticatedRequest,
     @Body() body: CreateRitualDto,
   ): Promise<RitualResponseDto> {
     const ritual = await this.ritualsService.create({
-      userId,
+      userId: request.authUser.id,
       title: body.title,
       description: body.description,
       icon: body.icon,
