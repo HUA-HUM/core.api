@@ -10,6 +10,20 @@ import {
 import { CreateRitualInteractor } from '../../../core/interactors/rituals/CreateRitualInteractor';
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
+import { ListRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ListRitualBlockedItemsInteractor';
+import { ReplaceRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ReplaceRitualBlockedItemsInteractor';
+import {
+  CreateRitualBlockedItemData,
+  RitualBlockedItem,
+  RitualBlockedItemType,
+} from '../../../core/entities/ritualBlockedItems/RitualBlockedItem';
+
+export interface ReplaceRitualBlockedItemServiceData {
+  type: RitualBlockedItemType;
+  identifier: string;
+  displayName?: string | null;
+  bundleIdentifier?: string | null;
+}
 
 export interface CreateRitualServiceData {
   userId: string;
@@ -32,6 +46,8 @@ export class RitualsService {
     private readonly createRitualInteractor: CreateRitualInteractor,
     private readonly listUserRitualsInteractor: ListUserRitualsInteractor,
     private readonly getRitualInteractor: GetRitualInteractor,
+    private readonly listRitualBlockedItemsInteractor: ListRitualBlockedItemsInteractor,
+    private readonly replaceRitualBlockedItemsInteractor: ReplaceRitualBlockedItemsInteractor,
   ) {}
 
   async listByUserId(userId: string): Promise<Ritual[]> {
@@ -72,6 +88,28 @@ export class RitualsService {
     };
 
     return this.createRitualInteractor.execute(createRitualData);
+  }
+
+
+  async listBlockedItems(
+    userId: string,
+    ritualId: string,
+  ): Promise<RitualBlockedItem[]> {
+    await this.getById(userId, ritualId);
+    return this.listRitualBlockedItemsInteractor.execute(ritualId);
+  }
+
+  async replaceBlockedItems(
+    userId: string,
+    ritualId: string,
+    items: ReplaceRitualBlockedItemServiceData[],
+  ): Promise<RitualBlockedItem[]> {
+    await this.getById(userId, ritualId);
+    const normalizedItems = this.normalizeBlockedItems(ritualId, items);
+    return this.replaceRitualBlockedItemsInteractor.execute(
+      ritualId,
+      normalizedItems,
+    );
   }
 
   private validateRequiredText(value: string, fieldName: string): void {
@@ -116,6 +154,43 @@ export class RitualsService {
         'selection counters must be greater than or equal to 0',
       );
     }
+  }
+
+
+  private normalizeBlockedItems(
+    ritualId: string,
+    items: ReplaceRitualBlockedItemServiceData[],
+  ): CreateRitualBlockedItemData[] {
+    if (!Array.isArray(items)) {
+      throw new BadRequestException('items must be an array');
+    }
+
+    const seen = new Set<string>();
+
+    return items.map((item) => {
+      if (!['app', 'category', 'domain'].includes(item.type)) {
+        throw new BadRequestException('item type must be app, category or domain');
+      }
+
+      const identifier = item.identifier?.trim();
+      if (!identifier) {
+        throw new BadRequestException('item identifier is required');
+      }
+
+      const dedupeKey = `${item.type}:${identifier}`;
+      if (seen.has(dedupeKey)) {
+        throw new BadRequestException('duplicated blocked item');
+      }
+      seen.add(dedupeKey);
+
+      return {
+        ritualId,
+        type: item.type,
+        identifier,
+        displayName: this.normalizeNullableText(item.displayName),
+        bundleIdentifier: this.normalizeNullableText(item.bundleIdentifier),
+      };
+    });
   }
 
   private normalizeNullableText(value?: string | null): string | null {
