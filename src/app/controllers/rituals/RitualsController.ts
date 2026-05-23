@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -44,6 +44,19 @@ export class RitualsController {
   ): Promise<RitualResponseDto> {
     const ritual = await this.ritualsService.getById(request.authUser.id, id);
     return RitualResponseDto.fromEntity(ritual);
+  }
+
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a ritual for the authenticated user' })
+  @ApiResponse({ status: 204, description: 'Ritual deleted' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async delete(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<void> {
+    await this.ritualsService.delete(request.authUser.id, id);
   }
 
 

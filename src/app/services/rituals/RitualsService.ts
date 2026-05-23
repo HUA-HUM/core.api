@@ -9,6 +9,7 @@ import {
 } from '../../../core/entities/rituals/Ritual';
 import { CreateRitualInteractor } from '../../../core/interactors/rituals/CreateRitualInteractor';
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
+import { DeleteRitualInteractor } from '../../../core/interactors/rituals/DeleteRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
 import { ListRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ListRitualBlockedItemsInteractor';
 import { ReplaceRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ReplaceRitualBlockedItemsInteractor';
@@ -46,6 +47,7 @@ export class RitualsService {
     private readonly createRitualInteractor: CreateRitualInteractor,
     private readonly listUserRitualsInteractor: ListUserRitualsInteractor,
     private readonly getRitualInteractor: GetRitualInteractor,
+    private readonly deleteRitualInteractor: DeleteRitualInteractor,
     private readonly listRitualBlockedItemsInteractor: ListRitualBlockedItemsInteractor,
     private readonly replaceRitualBlockedItemsInteractor: ReplaceRitualBlockedItemsInteractor,
   ) {}
@@ -88,6 +90,12 @@ export class RitualsService {
     };
 
     return this.createRitualInteractor.execute(createRitualData);
+  }
+
+
+  async delete(userId: string, id: string): Promise<void> {
+    await this.getById(userId, id);
+    await this.deleteRitualInteractor.execute(id);
   }
 
 

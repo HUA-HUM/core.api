@@ -6,4 +6,5 @@ export interface IRitualsRepository {
   create(data: CreateRitualData): Promise<Ritual>;
   findById(id: string): Promise<Ritual | null>;
   findByUserId(userId: string): Promise<Ritual[]>;
+  deleteById(id: string): Promise<void>;
 }

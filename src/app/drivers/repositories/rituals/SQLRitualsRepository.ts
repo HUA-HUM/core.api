@@ -150,6 +150,17 @@ export class SQLRitualsRepository implements IRitualsRepository {
     return rows.map((row) => this.mapRowToRitual(row));
   }
 
+
+  async deleteById(id: string): Promise<void> {
+    await this.queryRows<unknown>(
+      `
+        delete from rituals
+        where id = $1
+      `,
+      [id],
+    );
+  }
+
   private mapRowToRitual(row: RitualRow): Ritual {
     return {
       id: row.id,

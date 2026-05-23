@@ -6,6 +6,7 @@ import {
 } from '../../../core/adapters/repositories/rituals/IRitualsRepository';
 import { CreateRitualInteractor } from '../../../core/interactors/rituals/CreateRitualInteractor';
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
+import { DeleteRitualInteractor } from '../../../core/interactors/rituals/DeleteRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
 import {
   IRitualBlockedItemsRepository,
@@ -36,6 +37,12 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
       provide: GetRitualInteractor,
       useFactory: (ritualsRepository: IRitualsRepository) =>
         new GetRitualInteractor(ritualsRepository),
+      inject: [RITUALS_REPOSITORY],
+    },
+    {
+      provide: DeleteRitualInteractor,
+      useFactory: (ritualsRepository: IRitualsRepository) =>
+        new DeleteRitualInteractor(ritualsRepository),
       inject: [RITUALS_REPOSITORY],
     },
 
