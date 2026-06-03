@@ -3,8 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from '../../../config/env';
 import { RITUALS_REPOSITORY } from '../../../core/adapters/repositories/rituals/IRitualsRepository';
 import { RITUAL_BLOCKED_ITEMS_REPOSITORY } from '../../../core/adapters/repositories/ritualBlockedItems/IRitualBlockedItemsRepository';
+import { RITUAL_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/ritualSessions/IRitualSessionsRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
+import { SQLRitualSessionsRepository } from '../../drivers/repositories/ritualSessions/SQLRitualSessionsRepository';
 
 @Global()
 @Module({
@@ -25,7 +27,15 @@ import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritu
       provide: RITUAL_BLOCKED_ITEMS_REPOSITORY,
       useClass: SQLRitualBlockedItemsRepository,
     },
+    {
+      provide: RITUAL_SESSIONS_REPOSITORY,
+      useClass: SQLRitualSessionsRepository,
+    },
   ],
-  exports: [RITUALS_REPOSITORY, RITUAL_BLOCKED_ITEMS_REPOSITORY],
+  exports: [
+    RITUALS_REPOSITORY,
+    RITUAL_BLOCKED_ITEMS_REPOSITORY,
+    RITUAL_SESSIONS_REPOSITORY,
+  ],
 })
 export class DatabaseModule {}
