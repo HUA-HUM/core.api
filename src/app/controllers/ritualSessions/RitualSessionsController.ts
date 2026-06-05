@@ -10,7 +10,9 @@ import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
 import type { AuthenticatedRequest } from '../../services/jwtAuth/guards/JwtAuthGuard';
 import { FinishRitualSessionDto } from '../../dtos/ritualSessions/FinishRitualSessionDto';
 import { RitualSessionResponseDto } from '../../dtos/ritualSessions/RitualSessionResponseDto';
+import { RitualSessionSummaryResponseDto } from '../../dtos/ritualSessions/RitualSessionSummaryResponseDto';
 import { StartRitualSessionDto } from '../../dtos/ritualSessions/StartRitualSessionDto';
+import { RecordRitualSessionDto } from '../../dtos/ritualSessions/RecordRitualSessionDto';
 import { RitualSessionsService } from '../../services/ritualSessions/RitualSessionsService';
 
 @ApiTags('ritualSessions')
@@ -19,6 +21,28 @@ import { RitualSessionsService } from '../../services/ritualSessions/RitualSessi
 @Controller('ritual-sessions')
 export class RitualSessionsController {
   constructor(private readonly ritualSessionsService: RitualSessionsService) {}
+
+  @Post('record')
+  @ApiOperation({ summary: 'Record a ritual session that already happened' })
+  @ApiResponse({ status: 201, type: RitualSessionResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async record(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: RecordRitualSessionDto,
+  ): Promise<RitualSessionResponseDto> {
+    const session = await this.ritualSessionsService.record({
+      userId: request.authUser.id,
+      ritualId: body.ritualId,
+      startedAt: body.startedAt,
+      plannedEndAt: body.plannedEndAt,
+      endedAt: body.endedAt,
+      status: body.status,
+      startSource: body.startSource,
+      endSource: body.endSource,
+    });
+
+    return RitualSessionResponseDto.fromEntity(session);
+  }
 
   @Post('start')
   @ApiOperation({ summary: 'Start a ritual session for the authenticated user' })
@@ -50,6 +74,37 @@ export class RitualSessionsController {
     );
 
     return session ? RitualSessionResponseDto.fromEntity(session) : null;
+  }
+
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Get ritual session summary for the authenticated user' })
+  @ApiResponse({ status: 200, type: RitualSessionSummaryResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async summary(
+    @Req() request: AuthenticatedRequest,
+  ): Promise<RitualSessionSummaryResponseDto> {
+    const summary = await this.ritualSessionsService.summary(
+      request.authUser.id,
+    );
+
+    return RitualSessionSummaryResponseDto.fromEntity(summary);
+  }
+
+  @Get('ritual/:ritualId')
+  @ApiOperation({ summary: 'List ritual sessions by ritual id' })
+  @ApiResponse({ status: 200, type: [RitualSessionResponseDto] })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async listByRitual(
+    @Req() request: AuthenticatedRequest,
+    @Param('ritualId') ritualId: string,
+  ): Promise<RitualSessionResponseDto[]> {
+    const sessions = await this.ritualSessionsService.listByRitualId(
+      request.authUser.id,
+      ritualId,
+    );
+
+    return sessions.map((session) => RitualSessionResponseDto.fromEntity(session));
   }
 
   @Get()

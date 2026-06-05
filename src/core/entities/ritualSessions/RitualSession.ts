@@ -30,3 +30,14 @@ export interface FinishRitualSessionData {
   status: Exclude<RitualSessionStatus, 'active'>;
   endSource: RitualSessionEndSource;
 }
+
+export interface RecordRitualSessionData {
+  userId: string;
+  ritualId: string;
+  startedAt: Date;
+  plannedEndAt?: Date | null;
+  endedAt?: Date | null;
+  status: Exclude<RitualSessionStatus, 'active'>;
+  startSource: RitualSessionStartSource;
+  endSource: RitualSessionEndSource;
+}
