@@ -81,6 +81,46 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
   }
 
   async record(data: RecordRitualSessionData): Promise<RitualSession> {
+    const endedAt = data.endedAt ?? data.plannedEndAt ?? data.startedAt;
+    const existingRows = await this.queryRows<RitualSessionRow>(
+      `
+        select
+          id,
+          user_id as "userId",
+          ritual_id as "ritualId",
+          started_at as "startedAt",
+          planned_end_at as "plannedEndAt",
+          ended_at as "endedAt",
+          status,
+          start_source as "startSource",
+          end_source as "endSource",
+          duration_seconds as "durationSeconds",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        from ritual_sessions
+        where user_id = $1
+          and ritual_id = $2
+          and start_source = $3
+          and end_source = $4
+          and abs(extract(epoch from (started_at - ($5)::timestamptz))) <= 5
+          and abs(extract(epoch from (ended_at - ($6)::timestamptz))) <= 5
+        order by created_at desc
+        limit 1
+      `,
+      [
+        data.userId,
+        data.ritualId,
+        data.startSource,
+        data.endSource,
+        data.startedAt,
+        endedAt,
+      ],
+    );
+
+    if (existingRows[0]) {
+      return this.mapRowToRitualSession(existingRows[0]);
+    }
+
     const rows = await this.queryRows<RitualSessionRow>(
       `
         insert into ritual_sessions (
@@ -124,7 +164,7 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
         data.ritualId,
         data.startedAt,
         data.plannedEndAt ?? null,
-        data.endedAt ?? data.plannedEndAt ?? data.startedAt,
+        endedAt,
         data.status,
         data.startSource,
         data.endSource,
@@ -361,6 +401,10 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
 
     let streak = 0;
     const cursor = new Date();
+
+    if (!focusDays.has(this.utcDateKey(cursor))) {
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    }
 
     while (focusDays.has(this.utcDateKey(cursor))) {
       streak += 1;
