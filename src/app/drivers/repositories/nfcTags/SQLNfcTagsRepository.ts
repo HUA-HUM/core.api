@@ -12,13 +12,19 @@ import { INfcTagsRepository } from '../../../../core/adapters/repositories/nfcTa
 interface NfcTagClaimRow {
   id: string;
   tagId: string;
+  tag_id?: string;
   userId: string;
+  user_id?: string;
   label: string | null;
   status: NfcTagStatus;
   claimedAt: Date;
+  claimed_at?: Date;
   lastSeenAt: Date | null;
+  last_seen_at?: Date | null;
   createdAt: Date;
+  created_at?: Date;
   updatedAt: Date;
+  updated_at?: Date;
 }
 
 @Injectable()
@@ -163,15 +169,28 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
   private mapRowToClaim(row: NfcTagClaimRow): NfcTagClaim {
     return {
       id: row.id,
-      tagId: row.tagId,
-      userId: row.userId,
+      tagId: row.tagId ?? row.tag_id ?? '',
+      userId: row.userId ?? row.user_id ?? '',
       label: row.label,
       status: row.status,
-      claimedAt: new Date(row.claimedAt),
-      lastSeenAt: row.lastSeenAt ? new Date(row.lastSeenAt) : null,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      claimedAt: this.toDate(row.claimedAt ?? row.claimed_at),
+      lastSeenAt: this.toNullableDate(row.lastSeenAt ?? row.last_seen_at),
+      createdAt: this.toDate(row.createdAt ?? row.created_at),
+      updatedAt: this.toDate(row.updatedAt ?? row.updated_at),
     };
+  }
+
+  private toDate(value: unknown): Date {
+    const date = value instanceof Date ? value : new Date(String(value));
+    return date;
+  }
+
+  private toNullableDate(value: unknown): Date | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    return this.toDate(value);
   }
 
   private async queryRows<T>(sql: string, params: unknown[]): Promise<T[]> {

@@ -1,4 +1,8 @@
 import { NfcTagClaim, NfcTagStatus } from '../../../core/entities/nfcTags/NfcTag';
+import {
+  nullableDateISOString,
+  requiredDateISOString,
+} from '../common/dateResponse';
 
 export class NfcTagClaimResponseDto {
   id!: string;
@@ -18,10 +22,10 @@ export class NfcTagClaimResponseDto {
       userId: claim.userId,
       label: claim.label,
       status: claim.status,
-      claimedAt: claim.claimedAt.toISOString(),
-      lastSeenAt: claim.lastSeenAt?.toISOString() ?? null,
-      createdAt: claim.createdAt.toISOString(),
-      updatedAt: claim.updatedAt.toISOString(),
+      claimedAt: requiredDateISOString(claim.claimedAt, 'claimedAt'),
+      lastSeenAt: nullableDateISOString(claim.lastSeenAt),
+      createdAt: requiredDateISOString(claim.createdAt, 'createdAt'),
+      updatedAt: requiredDateISOString(claim.updatedAt, 'updatedAt'),
     };
   }
 }

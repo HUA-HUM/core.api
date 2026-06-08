@@ -4,6 +4,10 @@ import {
   RitualSessionStartSource,
   RitualSessionStatus,
 } from '../../../core/entities/ritualSessions/RitualSession';
+import {
+  nullableDateISOString,
+  requiredDateISOString,
+} from '../common/dateResponse';
 
 export class RitualSessionResponseDto {
   id!: string;
@@ -24,15 +28,15 @@ export class RitualSessionResponseDto {
       id: session.id,
       userId: session.userId,
       ritualId: session.ritualId,
-      startedAt: session.startedAt.toISOString(),
-      plannedEndAt: session.plannedEndAt?.toISOString() ?? null,
-      endedAt: session.endedAt?.toISOString() ?? null,
+      startedAt: requiredDateISOString(session.startedAt, 'startedAt'),
+      plannedEndAt: nullableDateISOString(session.plannedEndAt),
+      endedAt: nullableDateISOString(session.endedAt),
       status: session.status,
       startSource: session.startSource,
       endSource: session.endSource,
       durationSeconds: session.durationSeconds,
-      createdAt: session.createdAt.toISOString(),
-      updatedAt: session.updatedAt.toISOString(),
+      createdAt: requiredDateISOString(session.createdAt, 'createdAt'),
+      updatedAt: requiredDateISOString(session.updatedAt, 'updatedAt'),
     };
   }
 }

@@ -25,16 +25,26 @@ interface RitualSessionSummaryRow {
 interface RitualSessionRow {
   id: string;
   userId: string;
+  user_id?: string;
   ritualId: string;
+  ritual_id?: string;
   startedAt: Date;
+  started_at?: Date;
   plannedEndAt: Date | null;
+  planned_end_at?: Date | null;
   endedAt: Date | null;
+  ended_at?: Date | null;
   status: RitualSessionStatus;
   startSource: RitualSessionStartSource;
+  start_source?: RitualSessionStartSource;
   endSource: RitualSessionEndSource | null;
+  end_source?: RitualSessionEndSource | null;
   durationSeconds: number | null;
+  duration_seconds?: number | null;
   createdAt: Date;
+  created_at?: Date;
   updatedAt: Date;
+  updated_at?: Date;
 }
 
 @Injectable()
@@ -485,18 +495,30 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
   private mapRowToRitualSession(row: RitualSessionRow): RitualSession {
     return {
       id: row.id,
-      userId: row.userId,
-      ritualId: row.ritualId,
-      startedAt: new Date(row.startedAt),
-      plannedEndAt: row.plannedEndAt ? new Date(row.plannedEndAt) : null,
-      endedAt: row.endedAt ? new Date(row.endedAt) : null,
+      userId: row.userId ?? row.user_id ?? '',
+      ritualId: row.ritualId ?? row.ritual_id ?? '',
+      startedAt: this.toDate(row.startedAt ?? row.started_at),
+      plannedEndAt: this.toNullableDate(row.plannedEndAt ?? row.planned_end_at),
+      endedAt: this.toNullableDate(row.endedAt ?? row.ended_at),
       status: row.status,
-      startSource: row.startSource,
-      endSource: row.endSource,
-      durationSeconds: row.durationSeconds,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      startSource: row.startSource ?? row.start_source ?? 'manual',
+      endSource: row.endSource ?? row.end_source ?? null,
+      durationSeconds: row.durationSeconds ?? row.duration_seconds ?? null,
+      createdAt: this.toDate(row.createdAt ?? row.created_at),
+      updatedAt: this.toDate(row.updatedAt ?? row.updated_at),
     };
+  }
+
+  private toDate(value: unknown): Date {
+    return value instanceof Date ? value : new Date(String(value));
+  }
+
+  private toNullableDate(value: unknown): Date | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    return this.toDate(value);
   }
 
   private async queryRows<T>(sql: string, params: unknown[]): Promise<T[]> {
