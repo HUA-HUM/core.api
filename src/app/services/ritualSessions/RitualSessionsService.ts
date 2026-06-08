@@ -121,7 +121,11 @@ export class RitualSessionsService {
 
     const startedAt = this.parseRequiredDate(data.startedAt, 'startedAt');
     const plannedEndAt = this.parseOptionalDate(data.plannedEndAt, 'plannedEndAt');
-    const endedAt = this.parseOptionalDate(data.endedAt, 'endedAt') ?? plannedEndAt ?? startedAt;
+    let endedAt = this.parseOptionalDate(data.endedAt, 'endedAt') ?? plannedEndAt ?? startedAt;
+
+    if (plannedEndAt && endedAt.getTime() > plannedEndAt.getTime()) {
+      endedAt = plannedEndAt;
+    }
 
     if (endedAt.getTime() < startedAt.getTime()) {
       throw new BadRequestException('endedAt must be greater than or equal to startedAt');

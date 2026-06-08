@@ -82,7 +82,12 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
 
   async record(data: RecordRitualSessionData): Promise<RitualSession> {
     const endedAt = data.endedAt ?? data.plannedEndAt ?? data.startedAt;
-    const existingRows = await this.queryRows<RitualSessionRow>(
+    const incomingDurationSeconds = Math.max(
+      0,
+      Math.floor((endedAt.getTime() - data.startedAt.getTime()) / 1000),
+    );
+
+    const overlappingRows = await this.queryRows<RitualSessionRow>(
       `
         select
           id,
@@ -100,25 +105,63 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
         from ritual_sessions
         where user_id = $1
           and ritual_id = $2
-          and start_source = $3
-          and end_source = $4
-          and abs(extract(epoch from (started_at - ($5)::timestamptz))) <= 5
-          and abs(extract(epoch from (ended_at - ($6)::timestamptz))) <= 5
-        order by created_at desc
+          and start_source = 'schedule'
+          and planned_end_at is not null
+          and $3::timestamptz is not null
+          and abs(extract(epoch from (planned_end_at - ($3)::timestamptz))) <= 60
+        order by coalesce(duration_seconds, 0) desc, created_at asc
         limit 1
       `,
-      [
-        data.userId,
-        data.ritualId,
-        data.startSource,
-        data.endSource,
-        data.startedAt,
-        endedAt,
-      ],
+      [data.userId, data.ritualId, data.plannedEndAt ?? null],
     );
 
-    if (existingRows[0]) {
-      return this.mapRowToRitualSession(existingRows[0]);
+    if (overlappingRows[0]) {
+      const existingDurationSeconds = Number(
+        overlappingRows[0].durationSeconds ?? 0,
+      );
+
+      if (existingDurationSeconds >= incomingDurationSeconds) {
+        return this.mapRowToRitualSession(overlappingRows[0]);
+      }
+
+      const updatedRows = await this.queryRows<RitualSessionRow>(
+        `
+          update ritual_sessions
+          set
+            started_at = least(started_at, ($2)::timestamptz),
+            ended_at = ($3)::timestamptz,
+            status = $4,
+            end_source = $5,
+            duration_seconds = greatest(
+              0,
+              floor(extract(epoch from (($3)::timestamptz - least(started_at, ($2)::timestamptz))))::int
+            ),
+            updated_at = now()
+          where id = $1
+          returning
+            id,
+            user_id as "userId",
+            ritual_id as "ritualId",
+            started_at as "startedAt",
+            planned_end_at as "plannedEndAt",
+            ended_at as "endedAt",
+            status,
+            start_source as "startSource",
+            end_source as "endSource",
+            duration_seconds as "durationSeconds",
+            created_at as "createdAt",
+            updated_at as "updatedAt"
+        `,
+        [
+          overlappingRows[0].id,
+          data.startedAt,
+          endedAt,
+          data.status,
+          data.endSource,
+        ],
+      );
+
+      return this.mapRowToRitualSession(updatedRows[0]);
     }
 
     const rows = await this.queryRows<RitualSessionRow>(
@@ -333,8 +376,25 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
         set
           status = $3,
           end_source = $4,
-          ended_at = now(),
-          duration_seconds = greatest(0, floor(extract(epoch from (now() - started_at)))::int),
+          ended_at = case
+            when start_source = 'schedule'
+              and planned_end_at is not null
+              and $4 = 'timer'
+            then planned_end_at
+            else now()
+          end,
+          duration_seconds = greatest(
+            0,
+            floor(extract(epoch from (
+              case
+                when start_source = 'schedule'
+                  and planned_end_at is not null
+                  and $4 = 'timer'
+                then planned_end_at
+                else now()
+              end - started_at
+            )))::int
+          ),
           updated_at = now()
         where id = $1
           and user_id = $2
