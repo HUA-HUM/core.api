@@ -22,6 +22,9 @@ interface RitualRow {
   categoryCount: number;
   domainCount: number;
   selectionDigest: string | null;
+  isProtected: boolean;
+  nfcUnlockEnabled: boolean;
+  passwordHash: string | null;
   status: RitualStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -50,9 +53,15 @@ export class SQLRitualsRepository implements IRitualsRepository {
           category_count,
           domain_count,
           selection_digest,
+          is_protected,
+          nfc_unlock_enabled,
+          password_hash,
           status
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'active')
+        values (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+          $13, $14, $15, 'active'
+        )
         returning
           id,
           user_id as "userId",
@@ -67,6 +76,9 @@ export class SQLRitualsRepository implements IRitualsRepository {
           category_count as "categoryCount",
           domain_count as "domainCount",
           selection_digest as "selectionDigest",
+          is_protected as "isProtected",
+          nfc_unlock_enabled as "nfcUnlockEnabled",
+          password_hash as "passwordHash",
           status,
           created_at as "createdAt",
           updated_at as "updatedAt"
@@ -84,6 +96,9 @@ export class SQLRitualsRepository implements IRitualsRepository {
         data.categoryCount,
         data.domainCount,
         data.selectionDigest ?? null,
+        data.isProtected,
+        data.nfcUnlockEnabled,
+        data.passwordHash ?? null,
       ],
     );
 
@@ -107,6 +122,9 @@ export class SQLRitualsRepository implements IRitualsRepository {
           category_count as "categoryCount",
           domain_count as "domainCount",
           selection_digest as "selectionDigest",
+          is_protected as "isProtected",
+          nfc_unlock_enabled as "nfcUnlockEnabled",
+          password_hash as "passwordHash",
           status,
           created_at as "createdAt",
           updated_at as "updatedAt"
@@ -137,6 +155,9 @@ export class SQLRitualsRepository implements IRitualsRepository {
           category_count as "categoryCount",
           domain_count as "domainCount",
           selection_digest as "selectionDigest",
+          is_protected as "isProtected",
+          nfc_unlock_enabled as "nfcUnlockEnabled",
+          password_hash as "passwordHash",
           status,
           created_at as "createdAt",
           updated_at as "updatedAt"
@@ -149,7 +170,6 @@ export class SQLRitualsRepository implements IRitualsRepository {
 
     return rows.map((row) => this.mapRowToRitual(row));
   }
-
 
   async deleteById(id: string): Promise<void> {
     await this.queryRows<unknown>(
@@ -176,6 +196,9 @@ export class SQLRitualsRepository implements IRitualsRepository {
       categoryCount: row.categoryCount,
       domainCount: row.domainCount,
       selectionDigest: row.selectionDigest,
+      isProtected: row.isProtected,
+      nfcUnlockEnabled: row.nfcUnlockEnabled,
+      passwordHash: row.passwordHash,
       status: row.status,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),

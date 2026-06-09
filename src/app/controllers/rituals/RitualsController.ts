@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -10,6 +21,7 @@ import { CreateRitualDto } from '../../dtos/rituals/CreateRitualDto';
 import { ReplaceRitualBlockedItemsDto } from '../../dtos/ritualBlockedItems/ReplaceRitualBlockedItemsDto';
 import { RitualBlockedItemResponseDto } from '../../dtos/ritualBlockedItems/RitualBlockedItemResponseDto';
 import { RitualResponseDto } from '../../dtos/rituals/RitualResponseDto';
+import { DeleteRitualDto } from '../../dtos/rituals/DeleteRitualDto';
 import { RitualsService } from '../../services/rituals/RitualsService';
 import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
 import type { AuthenticatedRequest } from '../../services/jwtAuth/guards/JwtAuthGuard';
@@ -28,9 +40,7 @@ export class RitualsController {
   async list(
     @Req() request: AuthenticatedRequest,
   ): Promise<RitualResponseDto[]> {
-    const rituals = await this.ritualsService.listByUserId(
-      request.authUser.id,
-    );
+    const rituals = await this.ritualsService.listByUserId(request.authUser.id);
     return rituals.map((ritual) => RitualResponseDto.fromEntity(ritual));
   }
 
@@ -46,7 +56,6 @@ export class RitualsController {
     return RitualResponseDto.fromEntity(ritual);
   }
 
-
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a ritual for the authenticated user' })
@@ -55,10 +64,10 @@ export class RitualsController {
   async delete(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
+    @Body() body: DeleteRitualDto,
   ): Promise<void> {
-    await this.ritualsService.delete(request.authUser.id, id);
+    await this.ritualsService.delete(request.authUser.id, id, body?.password);
   }
-
 
   @Get(':id/blocked-items')
   @ApiOperation({ summary: 'List blocked items for a ritual' })
@@ -115,6 +124,9 @@ export class RitualsController {
       categoryCount: body.categoryCount,
       domainCount: body.domainCount,
       selectionDigest: body.selectionDigest,
+      isProtected: body.isProtected,
+      nfcUnlockEnabled: body.nfcUnlockEnabled,
+      password: body.password,
     });
 
     return RitualResponseDto.fromEntity(ritual);

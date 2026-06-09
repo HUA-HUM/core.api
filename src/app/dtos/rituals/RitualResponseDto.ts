@@ -14,6 +14,8 @@ export class RitualResponseDto {
   categoryCount!: number;
   domainCount!: number;
   selectionDigest!: string | null;
+  isProtected!: boolean;
+  nfcUnlockEnabled!: boolean;
   status!: RitualStatus;
   createdAt!: string;
   updatedAt!: string;
@@ -33,6 +35,8 @@ export class RitualResponseDto {
       categoryCount: ritual.categoryCount,
       domainCount: ritual.domainCount,
       selectionDigest: ritual.selectionDigest,
+      isProtected: ritual.isProtected,
+      nfcUnlockEnabled: ritual.nfcUnlockEnabled,
       status: ritual.status,
       createdAt: ritual.createdAt.toISOString(),
       updatedAt: ritual.updatedAt.toISOString(),

@@ -14,6 +14,9 @@ export interface Ritual {
   categoryCount: number;
   domainCount: number;
   selectionDigest: string | null;
+  isProtected: boolean;
+  nfcUnlockEnabled: boolean;
+  passwordHash: string | null;
   status: RitualStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -32,4 +35,7 @@ export interface CreateRitualData {
   categoryCount: number;
   domainCount: number;
   selectionDigest?: string | null;
+  isProtected: boolean;
+  nfcUnlockEnabled: boolean;
+  passwordHash?: string | null;
 }

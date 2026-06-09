@@ -16,6 +16,11 @@ import { ListRitualBlockedItemsInteractor } from '../../../core/interactors/ritu
 import { ReplaceRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ReplaceRitualBlockedItemsInteractor';
 import { RitualsService } from '../../services/rituals/RitualsService';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
+import {
+  IRitualPasswordHasher,
+  RITUAL_PASSWORD_HASHER,
+} from '../../../core/adapters/services/rituals/IRitualPasswordHasher';
+import { ScryptRitualPasswordHasher } from '../../services/rituals/ScryptRitualPasswordHasher';
 
 @Module({
   imports: [JwtAuthModule],
@@ -23,9 +28,11 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
   providers: [
     {
       provide: CreateRitualInteractor,
-      useFactory: (ritualsRepository: IRitualsRepository) =>
-        new CreateRitualInteractor(ritualsRepository),
-      inject: [RITUALS_REPOSITORY],
+      useFactory: (
+        ritualsRepository: IRitualsRepository,
+        passwordHasher: IRitualPasswordHasher,
+      ) => new CreateRitualInteractor(ritualsRepository, passwordHasher),
+      inject: [RITUALS_REPOSITORY, RITUAL_PASSWORD_HASHER],
     },
     {
       provide: ListUserRitualsInteractor,
@@ -41,9 +48,15 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
     },
     {
       provide: DeleteRitualInteractor,
-      useFactory: (ritualsRepository: IRitualsRepository) =>
-        new DeleteRitualInteractor(ritualsRepository),
-      inject: [RITUALS_REPOSITORY],
+      useFactory: (
+        ritualsRepository: IRitualsRepository,
+        passwordHasher: IRitualPasswordHasher,
+      ) => new DeleteRitualInteractor(ritualsRepository, passwordHasher),
+      inject: [RITUALS_REPOSITORY, RITUAL_PASSWORD_HASHER],
+    },
+    {
+      provide: RITUAL_PASSWORD_HASHER,
+      useClass: ScryptRitualPasswordHasher,
     },
 
     {
@@ -57,7 +70,8 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
       provide: ReplaceRitualBlockedItemsInteractor,
       useFactory: (
         ritualBlockedItemsRepository: IRitualBlockedItemsRepository,
-      ) => new ReplaceRitualBlockedItemsInteractor(ritualBlockedItemsRepository),
+      ) =>
+        new ReplaceRitualBlockedItemsInteractor(ritualBlockedItemsRepository),
       inject: [RITUAL_BLOCKED_ITEMS_REPOSITORY],
     },
     RitualsService,

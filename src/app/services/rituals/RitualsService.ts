@@ -1,13 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Ritual } from '../../../core/entities/rituals/Ritual';
 import {
-  CreateRitualData,
-  Ritual,
-} from '../../../core/entities/rituals/Ritual';
-import { CreateRitualInteractor } from '../../../core/interactors/rituals/CreateRitualInteractor';
+  CreateRitualInteractor,
+  CreateRitualInteractorData,
+} from '../../../core/interactors/rituals/CreateRitualInteractor';
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
 import { DeleteRitualInteractor } from '../../../core/interactors/rituals/DeleteRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
@@ -18,6 +19,7 @@ import {
   RitualBlockedItem,
   RitualBlockedItemType,
 } from '../../../core/entities/ritualBlockedItems/RitualBlockedItem';
+import { RitualProtectionError } from '../../../core/interactors/rituals/RitualProtectionError';
 
 export interface ReplaceRitualBlockedItemServiceData {
   type: RitualBlockedItemType;
@@ -39,6 +41,9 @@ export interface CreateRitualServiceData {
   categoryCount: number;
   domainCount: number;
   selectionDigest?: string | null;
+  isProtected?: boolean;
+  nfcUnlockEnabled?: boolean;
+  password?: string | null;
 }
 
 @Injectable()
@@ -74,7 +79,8 @@ export class RitualsService {
   async create(data: CreateRitualServiceData): Promise<Ritual> {
     this.validateCreateData(data);
 
-    const createRitualData: CreateRitualData = {
+    const isProtected = data.isProtected ?? false;
+    const createRitualData: CreateRitualInteractorData = {
       userId: data.userId,
       title: data.title.trim(),
       description: this.normalizeNullableText(data.description),
@@ -87,17 +93,35 @@ export class RitualsService {
       categoryCount: data.categoryCount,
       domainCount: data.domainCount,
       selectionDigest: this.normalizeNullableText(data.selectionDigest),
+      isProtected,
+      nfcUnlockEnabled: isProtected ? (data.nfcUnlockEnabled ?? true) : false,
+      password: isProtected ? data.password?.trim() : null,
     };
 
     return this.createRitualInteractor.execute(createRitualData);
   }
 
+  async delete(
+    userId: string,
+    id: string,
+    password?: string | null,
+  ): Promise<void> {
+    const ritual = await this.getById(userId, id);
 
-  async delete(userId: string, id: string): Promise<void> {
-    await this.getById(userId, id);
-    await this.deleteRitualInteractor.execute(id);
+    try {
+      await this.deleteRitualInteractor.execute(ritual, password?.trim());
+    } catch (error) {
+      if (error instanceof RitualProtectionError) {
+        throw new ForbiddenException(
+          error.code === 'RITUAL_PASSWORD_REQUIRED'
+            ? 'ritual password is required'
+            : 'invalid ritual password',
+        );
+      }
+
+      throw error;
+    }
   }
-
 
   async listBlockedItems(
     userId: string,
@@ -162,8 +186,17 @@ export class RitualsService {
         'selection counters must be greater than or equal to 0',
       );
     }
-  }
 
+    if (data.isProtected) {
+      const password = data.password?.trim() ?? '';
+
+      if (password.length < 4 || password.length > 72) {
+        throw new BadRequestException(
+          'password must contain between 4 and 72 characters',
+        );
+      }
+    }
+  }
 
   private normalizeBlockedItems(
     ritualId: string,
@@ -177,7 +210,9 @@ export class RitualsService {
 
     return items.map((item) => {
       if (!['app', 'category', 'domain'].includes(item.type)) {
-        throw new BadRequestException('item type must be app, category or domain');
+        throw new BadRequestException(
+          'item type must be app, category or domain',
+        );
       }
 
       const identifier = item.identifier?.trim();
