@@ -134,7 +134,7 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
         return this.mapRowToRitualSession(overlappingRows[0]);
       }
 
-      const updatedRows = await this.queryRows<RitualSessionRow>(
+      const updatedRows = await this.queryRows<{ id: string }>(
         `
           update ritual_sessions
           set
@@ -148,19 +148,7 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
             ),
             updated_at = now()
           where id = $1
-          returning
-            id,
-            user_id as "userId",
-            ritual_id as "ritualId",
-            started_at as "startedAt",
-            planned_end_at as "plannedEndAt",
-            ended_at as "endedAt",
-            status,
-            start_source as "startSource",
-            end_source as "endSource",
-            duration_seconds as "durationSeconds",
-            created_at as "createdAt",
-            updated_at as "updatedAt"
+          returning id
         `,
         [
           overlappingRows[0].id,
@@ -171,7 +159,13 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
         ],
       );
 
-      return this.mapRowToRitualSession(updatedRows[0]);
+      const updatedSession = await this.findById(updatedRows[0].id);
+
+      if (!updatedSession) {
+        throw new Error('Ritual session not found after record update');
+      }
+
+      return updatedSession;
     }
 
     const rows = await this.queryRows<RitualSessionRow>(
@@ -198,19 +192,7 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
           $8,
           greatest(0, floor(extract(epoch from (($5)::timestamptz - ($3)::timestamptz)))::int)
         )
-        returning
-          id,
-          user_id as "userId",
-          ritual_id as "ritualId",
-          started_at as "startedAt",
-          planned_end_at as "plannedEndAt",
-          ended_at as "endedAt",
-          status,
-          start_source as "startSource",
-          end_source as "endSource",
-          duration_seconds as "durationSeconds",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
+        returning id
       `,
       [
         data.userId,
@@ -224,7 +206,13 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
       ],
     );
 
-    return this.mapRowToRitualSession(rows[0]);
+    const recordedSession = await this.findById(rows[0].id);
+
+    if (!recordedSession) {
+      throw new Error('Ritual session not found after record insert');
+    }
+
+    return recordedSession;
   }
 
   async findActiveByUserId(userId: string): Promise<RitualSession | null> {
@@ -409,24 +397,16 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
         where id = $1
           and user_id = $2
           and status = 'active'
-        returning
-          id,
-          user_id as "userId",
-          ritual_id as "ritualId",
-          started_at as "startedAt",
-          planned_end_at as "plannedEndAt",
-          ended_at as "endedAt",
-          status,
-          start_source as "startSource",
-          end_source as "endSource",
-          duration_seconds as "durationSeconds",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
+        returning id
       `,
       [data.id, data.userId, data.status, data.endSource],
     );
 
-    return rows[0] ? this.mapRowToRitualSession(rows[0]) : null;
+    if (!rows[0]) {
+      return null;
+    }
+
+    return this.findById(rows[0].id);
   }
 
 

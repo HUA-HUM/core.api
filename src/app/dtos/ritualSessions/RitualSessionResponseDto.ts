@@ -28,7 +28,11 @@ export class RitualSessionResponseDto {
       id: session.id,
       userId: session.userId,
       ritualId: session.ritualId,
-      startedAt: requiredDateISOString(session.startedAt, 'startedAt'),
+      startedAt: requiredDateISOString(
+        session.startedAt,
+        'startedAt',
+        session.createdAt,
+      ),
       plannedEndAt: nullableDateISOString(session.plannedEndAt),
       endedAt: nullableDateISOString(session.endedAt),
       status: session.status,

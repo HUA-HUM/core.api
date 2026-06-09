@@ -142,14 +142,31 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
   }
 
   async touchClaim(id: string): Promise<NfcTagClaim> {
-    const rows = await this.queryRows<NfcTagClaimRow>(
+    await this.queryRows<{ id: string }>(
       `
         update nfc_tag_claims
         set
           last_seen_at = now(),
           updated_at = now()
         where id = $1
-        returning
+        returning id
+      `,
+      [id],
+    );
+
+    const claim = await this.findClaimById(id);
+
+    if (!claim) {
+      throw new Error('NFC tag claim not found after update');
+    }
+
+    return claim;
+  }
+
+  private async findClaimById(id: string): Promise<NfcTagClaim | null> {
+    const rows = await this.queryRows<NfcTagClaimRow>(
+      `
+        select
           id,
           tag_id as "tagId",
           user_id as "userId",
@@ -159,11 +176,14 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
           last_seen_at as "lastSeenAt",
           created_at as "createdAt",
           updated_at as "updatedAt"
+        from nfc_tag_claims
+        where id = $1
+        limit 1
       `,
       [id],
     );
 
-    return this.mapRowToClaim(rows[0]);
+    return rows[0] ? this.mapRowToClaim(rows[0]) : null;
   }
 
   private mapRowToClaim(row: NfcTagClaimRow): NfcTagClaim {

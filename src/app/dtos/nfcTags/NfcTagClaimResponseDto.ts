@@ -22,7 +22,11 @@ export class NfcTagClaimResponseDto {
       userId: claim.userId,
       label: claim.label,
       status: claim.status,
-      claimedAt: requiredDateISOString(claim.claimedAt, 'claimedAt'),
+      claimedAt: requiredDateISOString(
+        claim.claimedAt,
+        'claimedAt',
+        claim.createdAt,
+      ),
       lastSeenAt: nullableDateISOString(claim.lastSeenAt),
       createdAt: requiredDateISOString(claim.createdAt, 'createdAt'),
       updatedAt: requiredDateISOString(claim.updatedAt, 'updatedAt'),
