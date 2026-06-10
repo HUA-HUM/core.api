@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -66,5 +77,18 @@ export class NfcTagsController {
       valid: Boolean(claim),
       claim: claim ? NfcTagClaimResponseDto.fromEntity(claim) : null,
     };
+  }
+
+  @Delete(':claimId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Revoke an NFC tag claim for the authenticated user' })
+  @ApiResponse({ status: 204, description: 'NFC tag claim revoked' })
+  @ApiResponse({ status: 404, description: 'NFC tag claim not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async revoke(
+    @Req() request: AuthenticatedRequest,
+    @Param('claimId') claimId: string,
+  ): Promise<void> {
+    await this.nfcTagsService.revoke(request.authUser.id, claimId);
   }
 }

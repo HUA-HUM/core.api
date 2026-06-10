@@ -1,8 +1,14 @@
 import { createHash } from 'crypto';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ClaimNfcTagInteractor } from '../../../core/interactors/nfcTags/ClaimNfcTagInteractor';
 import { ListUserNfcTagClaimsInteractor } from '../../../core/interactors/nfcTags/ListUserNfcTagClaimsInteractor';
 import { VerifyNfcTagInteractor } from '../../../core/interactors/nfcTags/VerifyNfcTagInteractor';
+import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/RevokeNfcTagClaimInteractor';
+import { NfcTagClaimNotFoundError } from '../../../core/interactors/nfcTags/NfcTagClaimNotFoundError';
 import { NfcTagClaim } from '../../../core/entities/nfcTags/NfcTag';
 
 export interface ClaimNfcTagServiceData {
@@ -22,6 +28,7 @@ export class NfcTagsService {
     private readonly claimNfcTagInteractor: ClaimNfcTagInteractor,
     private readonly listUserNfcTagClaimsInteractor: ListUserNfcTagClaimsInteractor,
     private readonly verifyNfcTagInteractor: VerifyNfcTagInteractor,
+    private readonly revokeNfcTagClaimInteractor: RevokeNfcTagClaimInteractor,
   ) {}
 
   async listByUserId(userId: string): Promise<NfcTagClaim[]> {
@@ -48,6 +55,21 @@ export class NfcTagsService {
       userId: data.userId,
       tagHash,
     });
+  }
+
+  async revoke(userId: string, claimId: string): Promise<void> {
+    this.validateRequiredText(userId, 'userId');
+    this.validateRequiredText(claimId, 'claimId');
+
+    try {
+      await this.revokeNfcTagClaimInteractor.execute(claimId, userId);
+    } catch (error) {
+      if (error instanceof NfcTagClaimNotFoundError) {
+        throw new NotFoundException('NFC tag claim not found');
+      }
+
+      throw error;
+    }
   }
 
   private hashTagIdentifier(tagIdentifier: string): string {

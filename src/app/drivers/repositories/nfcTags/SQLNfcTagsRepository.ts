@@ -163,6 +163,36 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     return claim;
   }
 
+  async revokeClaim(
+    id: string,
+    userId: string,
+  ): Promise<NfcTagClaim | null> {
+    const rows = await this.queryRows<NfcTagClaimRow>(
+      `
+        update nfc_tag_claims
+        set
+          status = 'revoked',
+          updated_at = now()
+        where id = $1
+          and user_id = $2
+          and status = 'active'
+        returning
+          id,
+          tag_id as "tagId",
+          user_id as "userId",
+          label,
+          status,
+          claimed_at as "claimedAt",
+          last_seen_at as "lastSeenAt",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+      `,
+      [id, userId],
+    );
+
+    return rows[0] ? this.mapRowToClaim(rows[0]) : null;
+  }
+
   private async findClaimById(id: string): Promise<NfcTagClaim | null> {
     const rows = await this.queryRows<NfcTagClaimRow>(
       `
