@@ -11,5 +11,10 @@ export interface INfcTagsRepository {
   findClaimsByUserId(userId: string): Promise<NfcTagClaim[]>;
   findActiveClaim(data: VerifyNfcTagData): Promise<NfcTagClaim | null>;
   touchClaim(id: string): Promise<NfcTagClaim>;
+  updateClaimLabel(
+    id: string,
+    userId: string,
+    label: string,
+  ): Promise<NfcTagClaim | null>;
   revokeClaim(id: string, userId: string): Promise<NfcTagClaim | null>;
 }

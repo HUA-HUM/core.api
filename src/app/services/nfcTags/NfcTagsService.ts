@@ -9,6 +9,7 @@ import { ListUserNfcTagClaimsInteractor } from '../../../core/interactors/nfcTag
 import { VerifyNfcTagInteractor } from '../../../core/interactors/nfcTags/VerifyNfcTagInteractor';
 import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/RevokeNfcTagClaimInteractor';
 import { NfcTagClaimNotFoundError } from '../../../core/interactors/nfcTags/NfcTagClaimNotFoundError';
+import { UpdateNfcTagClaimLabelInteractor } from '../../../core/interactors/nfcTags/UpdateNfcTagClaimLabelInteractor';
 import { NfcTagClaim } from '../../../core/entities/nfcTags/NfcTag';
 
 export interface ClaimNfcTagServiceData {
@@ -29,6 +30,7 @@ export class NfcTagsService {
     private readonly listUserNfcTagClaimsInteractor: ListUserNfcTagClaimsInteractor,
     private readonly verifyNfcTagInteractor: VerifyNfcTagInteractor,
     private readonly revokeNfcTagClaimInteractor: RevokeNfcTagClaimInteractor,
+    private readonly updateNfcTagClaimLabelInteractor: UpdateNfcTagClaimLabelInteractor,
   ) {}
 
   async listByUserId(userId: string): Promise<NfcTagClaim[]> {
@@ -63,6 +65,38 @@ export class NfcTagsService {
 
     try {
       await this.revokeNfcTagClaimInteractor.execute(claimId, userId);
+    } catch (error) {
+      if (error instanceof NfcTagClaimNotFoundError) {
+        throw new NotFoundException('NFC tag claim not found');
+      }
+
+      throw error;
+    }
+  }
+
+  async updateLabel(
+    userId: string,
+    claimId: string,
+    label: string,
+  ): Promise<NfcTagClaim> {
+    this.validateRequiredText(userId, 'userId');
+    this.validateRequiredText(claimId, 'claimId');
+    const normalizedLabel = label?.trim();
+
+    if (!normalizedLabel) {
+      throw new BadRequestException('label is required');
+    }
+
+    if (normalizedLabel.length > 60) {
+      throw new BadRequestException('label must have at most 60 characters');
+    }
+
+    try {
+      return await this.updateNfcTagClaimLabelInteractor.execute(
+        claimId,
+        userId,
+        normalizedLabel,
+      );
     } catch (error) {
       if (error instanceof NfcTagClaimNotFoundError) {
         throw new NotFoundException('NFC tag claim not found');

@@ -8,6 +8,7 @@ import { ClaimNfcTagInteractor } from '../../../core/interactors/nfcTags/ClaimNf
 import { ListUserNfcTagClaimsInteractor } from '../../../core/interactors/nfcTags/ListUserNfcTagClaimsInteractor';
 import { VerifyNfcTagInteractor } from '../../../core/interactors/nfcTags/VerifyNfcTagInteractor';
 import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/RevokeNfcTagClaimInteractor';
+import { UpdateNfcTagClaimLabelInteractor } from '../../../core/interactors/nfcTags/UpdateNfcTagClaimLabelInteractor';
 import { NfcTagsService } from '../../services/nfcTags/NfcTagsService';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
 
@@ -37,6 +38,12 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
       provide: RevokeNfcTagClaimInteractor,
       useFactory: (nfcTagsRepository: INfcTagsRepository) =>
         new RevokeNfcTagClaimInteractor(nfcTagsRepository),
+      inject: [NFC_TAGS_REPOSITORY],
+    },
+    {
+      provide: UpdateNfcTagClaimLabelInteractor,
+      useFactory: (nfcTagsRepository: INfcTagsRepository) =>
+        new UpdateNfcTagClaimLabelInteractor(nfcTagsRepository),
       inject: [NFC_TAGS_REPOSITORY],
     },
     NfcTagsService,

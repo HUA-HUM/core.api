@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -24,6 +25,7 @@ import { NfcTagClaimResponseDto } from '../../dtos/nfcTags/NfcTagClaimResponseDt
 import { VerifyNfcTagDto } from '../../dtos/nfcTags/VerifyNfcTagDto';
 import { VerifyNfcTagResponseDto } from '../../dtos/nfcTags/VerifyNfcTagResponseDto';
 import { NfcTagsService } from '../../services/nfcTags/NfcTagsService';
+import { UpdateNfcTagClaimDto } from '../../dtos/nfcTags/UpdateNfcTagClaimDto';
 
 @ApiTags('nfc-tags')
 @ApiBearerAuth()
@@ -77,6 +79,25 @@ export class NfcTagsController {
       valid: Boolean(claim),
       claim: claim ? NfcTagClaimResponseDto.fromEntity(claim) : null,
     };
+  }
+
+  @Patch(':claimId')
+  @ApiOperation({ summary: 'Rename an NFC tag claim for the authenticated user' })
+  @ApiResponse({ status: 200, type: NfcTagClaimResponseDto })
+  @ApiResponse({ status: 404, description: 'NFC tag claim not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async updateLabel(
+    @Req() request: AuthenticatedRequest,
+    @Param('claimId') claimId: string,
+    @Body() body: UpdateNfcTagClaimDto,
+  ): Promise<NfcTagClaimResponseDto> {
+    const claim = await this.nfcTagsService.updateLabel(
+      request.authUser.id,
+      claimId,
+      body.label,
+    );
+
+    return NfcTagClaimResponseDto.fromEntity(claim);
   }
 
   @Delete(':claimId')
