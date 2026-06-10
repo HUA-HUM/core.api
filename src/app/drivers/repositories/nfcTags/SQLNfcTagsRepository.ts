@@ -11,19 +11,25 @@ import { INfcTagsRepository } from '../../../../core/adapters/repositories/nfcTa
 
 interface NfcTagClaimRow {
   id: string;
-  tagId: string;
+  tagId?: string;
+  tagid?: string;
   tag_id?: string;
-  userId: string;
+  userId?: string;
+  userid?: string;
   user_id?: string;
   label: string | null;
   status: NfcTagStatus;
-  claimedAt: Date;
+  claimedAt?: Date | string;
+  claimedat?: Date | string;
   claimed_at?: Date;
-  lastSeenAt: Date | null;
+  lastSeenAt?: Date | string | null;
+  lastseenat?: Date | string | null;
   last_seen_at?: Date | null;
-  createdAt: Date;
+  createdAt?: Date | string;
+  createdat?: Date | string;
   created_at?: Date;
-  updatedAt: Date;
+  updatedAt?: Date | string;
+  updatedat?: Date | string;
   updated_at?: Date;
 }
 
@@ -250,19 +256,35 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
   private mapRowToClaim(row: NfcTagClaimRow): NfcTagClaim {
     return {
       id: row.id,
-      tagId: row.tagId ?? row.tag_id ?? '',
-      userId: row.userId ?? row.user_id ?? '',
+      tagId: row.tagId ?? row.tagid ?? row.tag_id ?? '',
+      userId: row.userId ?? row.userid ?? row.user_id ?? '',
       label: row.label,
       status: row.status,
-      claimedAt: this.toDate(row.claimedAt ?? row.claimed_at),
-      lastSeenAt: this.toNullableDate(row.lastSeenAt ?? row.last_seen_at),
-      createdAt: this.toDate(row.createdAt ?? row.created_at),
-      updatedAt: this.toDate(row.updatedAt ?? row.updated_at),
+      claimedAt: this.toDate(
+        row.claimedAt ?? row.claimedat ?? row.claimed_at,
+        'claimedAt',
+      ),
+      lastSeenAt: this.toNullableDate(
+        row.lastSeenAt ?? row.lastseenat ?? row.last_seen_at,
+      ),
+      createdAt: this.toDate(
+        row.createdAt ?? row.createdat ?? row.created_at,
+        'createdAt',
+      ),
+      updatedAt: this.toDate(
+        row.updatedAt ?? row.updatedat ?? row.updated_at,
+        'updatedAt',
+      ),
     };
   }
 
-  private toDate(value: unknown): Date {
+  private toDate(value: unknown, fieldName: string): Date {
     const date = value instanceof Date ? value : new Date(String(value));
+
+    if (Number.isNaN(date.getTime())) {
+      throw new Error(`Invalid NFC tag claim date: ${fieldName}`);
+    }
+
     return date;
   }
 
@@ -271,7 +293,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
       return null;
     }
 
-    return this.toDate(value);
+    return this.toDate(value, 'lastSeenAt');
   }
 
   private async queryRows<T>(sql: string, params: unknown[]): Promise<T[]> {
