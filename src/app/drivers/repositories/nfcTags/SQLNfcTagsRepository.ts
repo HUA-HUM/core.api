@@ -52,6 +52,16 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
             updated_at = now()
           returning id
         ),
+        revoked_previous_claims as (
+          update nfc_tag_claims
+          set
+            status = 'revoked',
+            updated_at = now()
+          where user_id = $1
+            and status = 'active'
+            and tag_id <> (select id from tag)
+          returning id
+        ),
         claim as (
           insert into nfc_tag_claims (
             tag_id,
@@ -69,6 +79,8 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
             now(),
             now()
           from tag
+          left join revoked_previous_claims on true
+          group by tag.id
           on conflict (tag_id, user_id)
           do update set
             label = excluded.label,
@@ -169,11 +181,8 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     return claim;
   }
 
-  async revokeClaim(
-    id: string,
-    userId: string,
-  ): Promise<NfcTagClaim | null> {
-    const rows = await this.queryRows<NfcTagClaimRow>(
+  async revokeClaim(id: string, userId: string): Promise<NfcTagClaim | null> {
+    const rows = await this.queryRows<{ id: string }>(
       `
         update nfc_tag_claims
         set
@@ -182,21 +191,12 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
         where id = $1
           and user_id = $2
           and status = 'active'
-        returning
-          id,
-          tag_id as "tagId",
-          user_id as "userId",
-          label,
-          status,
-          claimed_at as "claimedAt",
-          last_seen_at as "lastSeenAt",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
+        returning id
       `,
       [id, userId],
     );
 
-    return rows[0] ? this.mapRowToClaim(rows[0]) : null;
+    return rows[0] ? this.findClaimById(rows[0].id) : null;
   }
 
   async updateClaimLabel(
@@ -204,7 +204,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     userId: string,
     label: string,
   ): Promise<NfcTagClaim | null> {
-    const rows = await this.queryRows<NfcTagClaimRow>(
+    const rows = await this.queryRows<{ id: string }>(
       `
         update nfc_tag_claims
         set
@@ -213,21 +213,12 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
         where id = $1
           and user_id = $2
           and status = 'active'
-        returning
-          id,
-          tag_id as "tagId",
-          user_id as "userId",
-          label,
-          status,
-          claimed_at as "claimedAt",
-          last_seen_at as "lastSeenAt",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
+        returning id
       `,
       [id, userId, label],
     );
 
-    return rows[0] ? this.mapRowToClaim(rows[0]) : null;
+    return rows[0] ? this.findClaimById(rows[0].id) : null;
   }
 
   private async findClaimById(id: string): Promise<NfcTagClaim | null> {
