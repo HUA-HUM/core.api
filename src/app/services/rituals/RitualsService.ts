@@ -17,14 +17,17 @@ import { ReplaceRitualBlockedItemsInteractor } from '../../../core/interactors/r
 import {
   CreateRitualBlockedItemData,
   RitualBlockedItem,
+  RitualBlockedItemPlatform,
   RitualBlockedItemType,
 } from '../../../core/entities/ritualBlockedItems/RitualBlockedItem';
 import { RitualProtectionError } from '../../../core/interactors/rituals/RitualProtectionError';
 
 export interface ReplaceRitualBlockedItemServiceData {
+  platform?: RitualBlockedItemPlatform;
   type: RitualBlockedItemType;
   identifier: string;
   displayName?: string | null;
+  applicationIdentifier?: string | null;
   bundleIdentifier?: string | null;
 }
 
@@ -126,20 +129,44 @@ export class RitualsService {
   async listBlockedItems(
     userId: string,
     ritualId: string,
+    platform: RitualBlockedItemPlatform = 'ios',
   ): Promise<RitualBlockedItem[]> {
     await this.getById(userId, ritualId);
-    return this.listRitualBlockedItemsInteractor.execute(ritualId);
+    this.validatePlatform(platform);
+    return this.listRitualBlockedItemsInteractor.execute(ritualId, platform);
   }
 
   async replaceBlockedItems(
     userId: string,
     ritualId: string,
+    platform: RitualBlockedItemPlatform | undefined,
     items: ReplaceRitualBlockedItemServiceData[],
   ): Promise<RitualBlockedItem[]> {
     await this.getById(userId, ritualId);
-    const normalizedItems = this.normalizeBlockedItems(ritualId, items);
+
+    if (!Array.isArray(items)) {
+      throw new BadRequestException('items must be an array');
+    }
+
+    const targetPlatform = platform ?? items[0]?.platform ?? 'ios';
+    this.validatePlatform(targetPlatform);
+
+    if (
+      items.some((item) => item.platform && item.platform !== targetPlatform)
+    ) {
+      throw new BadRequestException(
+        'all item platforms must match the request platform',
+      );
+    }
+
+    const normalizedItems = this.normalizeBlockedItems(
+      ritualId,
+      targetPlatform,
+      items,
+    );
     return this.replaceRitualBlockedItemsInteractor.execute(
       ritualId,
+      targetPlatform,
       normalizedItems,
     );
   }
@@ -200,6 +227,7 @@ export class RitualsService {
 
   private normalizeBlockedItems(
     ritualId: string,
+    platform: RitualBlockedItemPlatform,
     items: ReplaceRitualBlockedItemServiceData[],
   ): CreateRitualBlockedItemData[] {
     if (!Array.isArray(items)) {
@@ -220,7 +248,7 @@ export class RitualsService {
         throw new BadRequestException('item identifier is required');
       }
 
-      const dedupeKey = `${item.type}:${identifier}`;
+      const dedupeKey = `${platform}:${item.type}:${identifier}`;
       if (seen.has(dedupeKey)) {
         throw new BadRequestException('duplicated blocked item');
       }
@@ -228,12 +256,24 @@ export class RitualsService {
 
       return {
         ritualId,
+        platform,
         type: item.type,
         identifier,
         displayName: this.normalizeNullableText(item.displayName),
+        applicationIdentifier: this.normalizeNullableText(
+          item.applicationIdentifier ?? item.bundleIdentifier,
+        ),
         bundleIdentifier: this.normalizeNullableText(item.bundleIdentifier),
       };
     });
+  }
+
+  private validatePlatform(
+    platform: string,
+  ): asserts platform is RitualBlockedItemPlatform {
+    if (!['ios', 'android'].includes(platform)) {
+      throw new BadRequestException('platform must be ios or android');
+    }
   }
 
   private normalizeNullableText(value?: string | null): string | null {

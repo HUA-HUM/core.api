@@ -2,6 +2,7 @@ import { IRitualBlockedItemsRepository } from '../../adapters/repositories/ritua
 import {
   CreateRitualBlockedItemData,
   RitualBlockedItem,
+  RitualBlockedItemPlatform,
 } from '../../entities/ritualBlockedItems/RitualBlockedItem';
 
 export class ReplaceRitualBlockedItemsInteractor {
@@ -11,8 +12,13 @@ export class ReplaceRitualBlockedItemsInteractor {
 
   async execute(
     ritualId: string,
+    platform: RitualBlockedItemPlatform,
     items: CreateRitualBlockedItemData[],
   ): Promise<RitualBlockedItem[]> {
-    return this.ritualBlockedItemsRepository.replaceForRitual(ritualId, items);
+    return this.ritualBlockedItemsRepository.replaceForRitual(
+      ritualId,
+      platform,
+      items,
+    );
   }
 }

@@ -5,44 +5,51 @@ import { IRitualBlockedItemsRepository } from '../../../../core/adapters/reposit
 import {
   CreateRitualBlockedItemData,
   RitualBlockedItem,
+  RitualBlockedItemPlatform,
   RitualBlockedItemType,
 } from '../../../../core/entities/ritualBlockedItems/RitualBlockedItem';
 
 interface RitualBlockedItemRow {
   id: string;
   ritualId: string;
+  platform: RitualBlockedItemPlatform;
   type: RitualBlockedItemType;
   identifier: string;
   displayName: string | null;
+  applicationIdentifier: string | null;
   bundleIdentifier: string | null;
   createdAt: Date;
 }
 
 @Injectable()
-export class SQLRitualBlockedItemsRepository
-  implements IRitualBlockedItemsRepository
-{
+export class SQLRitualBlockedItemsRepository implements IRitualBlockedItemsRepository {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
   ) {}
 
-  async findByRitualId(ritualId: string): Promise<RitualBlockedItem[]> {
+  async findByRitualId(
+    ritualId: string,
+    platform: RitualBlockedItemPlatform,
+  ): Promise<RitualBlockedItem[]> {
     const rows = await this.queryRows<RitualBlockedItemRow>(
       `
         select
           id,
           ritual_id as "ritualId",
+          platform,
           type,
           identifier,
           display_name as "displayName",
+          application_identifier as "applicationIdentifier",
           bundle_identifier as "bundleIdentifier",
           created_at as "createdAt"
         from ritual_blocked_items
         where ritual_id = $1
+          and platform = $2
         order by created_at asc
       `,
-      [ritualId],
+      [ritualId, platform],
     );
 
     return rows.map((row) => this.mapRowToRitualBlockedItem(row));
@@ -50,6 +57,7 @@ export class SQLRitualBlockedItemsRepository
 
   async replaceForRitual(
     ritualId: string,
+    platform: RitualBlockedItemPlatform,
     items: CreateRitualBlockedItemData[],
   ): Promise<RitualBlockedItem[]> {
     return this.entityManager.transaction(async (manager) => {
@@ -57,8 +65,9 @@ export class SQLRitualBlockedItemsRepository
         `
           delete from ritual_blocked_items
           where ritual_id = $1
+            and platform = $2
         `,
-        [ritualId],
+        [ritualId, platform],
       );
 
       if (items.length === 0) {
@@ -72,26 +81,32 @@ export class SQLRitualBlockedItemsRepository
           `
             insert into ritual_blocked_items (
               ritual_id,
+              platform,
               type,
               identifier,
               display_name,
+              application_identifier,
               bundle_identifier
             )
-            values ($1, $2, $3, $4, $5)
+            values ($1, $2, $3, $4, $5, $6, $7)
             returning
               id,
               ritual_id as "ritualId",
+              platform,
               type,
               identifier,
               display_name as "displayName",
+              application_identifier as "applicationIdentifier",
               bundle_identifier as "bundleIdentifier",
               created_at as "createdAt"
           `,
           [
             ritualId,
+            platform,
             item.type,
             item.identifier,
             item.displayName ?? null,
+            item.applicationIdentifier ?? item.bundleIdentifier ?? null,
             item.bundleIdentifier ?? null,
           ],
         )) as RitualBlockedItemRow[];
@@ -109,9 +124,11 @@ export class SQLRitualBlockedItemsRepository
     return {
       id: row.id,
       ritualId: row.ritualId,
+      platform: row.platform,
       type: row.type,
       identifier: row.identifier,
       displayName: row.displayName,
+      applicationIdentifier: row.applicationIdentifier,
       bundleIdentifier: row.bundleIdentifier,
       createdAt: new Date(row.createdAt),
     };

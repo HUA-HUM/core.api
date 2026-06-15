@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { RitualResponseDto } from '../../dtos/rituals/RitualResponseDto';
 import { DeleteRitualDto } from '../../dtos/rituals/DeleteRitualDto';
 import { RitualsService } from '../../services/rituals/RitualsService';
 import { JwtAuthGuard } from '../../services/jwtAuth/guards/JwtAuthGuard';
+import type { RitualBlockedItemPlatform } from '../../../core/entities/ritualBlockedItems/RitualBlockedItem';
 import type { AuthenticatedRequest } from '../../services/jwtAuth/guards/JwtAuthGuard';
 
 @ApiTags('rituals')
@@ -76,10 +78,12 @@ export class RitualsController {
   async listBlockedItems(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
+    @Query('platform') platform?: RitualBlockedItemPlatform,
   ): Promise<RitualBlockedItemResponseDto[]> {
     const items = await this.ritualsService.listBlockedItems(
       request.authUser.id,
       id,
+      platform,
     );
 
     return items.map((item) => RitualBlockedItemResponseDto.fromEntity(item));
@@ -97,6 +101,7 @@ export class RitualsController {
     const items = await this.ritualsService.replaceBlockedItems(
       request.authUser.id,
       id,
+      body.platform,
       body.items,
     );
 
