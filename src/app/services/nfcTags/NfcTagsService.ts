@@ -67,7 +67,14 @@ export class NfcTagsService {
       await this.revokeNfcTagClaimInteractor.execute(claimId, userId);
     } catch (error) {
       if (error instanceof NfcTagClaimNotFoundError) {
-        throw new NotFoundException('NFC tag claim not found');
+        const currentClaim = await this.findCurrentClaim(userId);
+
+        if (!currentClaim) {
+          return;
+        }
+
+        await this.revokeNfcTagClaimInteractor.execute(currentClaim.id, userId);
+        return;
       }
 
       throw error;
@@ -99,11 +106,26 @@ export class NfcTagsService {
       );
     } catch (error) {
       if (error instanceof NfcTagClaimNotFoundError) {
-        throw new NotFoundException('NFC tag claim not found');
+        const currentClaim = await this.findCurrentClaim(userId);
+
+        if (!currentClaim) {
+          throw new NotFoundException('NFC tag claim not found');
+        }
+
+        return this.updateNfcTagClaimLabelInteractor.execute(
+          currentClaim.id,
+          userId,
+          normalizedLabel,
+        );
       }
 
       throw error;
     }
+  }
+
+  private async findCurrentClaim(userId: string): Promise<NfcTagClaim | null> {
+    const claims = await this.listUserNfcTagClaimsInteractor.execute(userId);
+    return claims[0] ?? null;
   }
 
   private hashTagIdentifier(tagIdentifier: string): string {
