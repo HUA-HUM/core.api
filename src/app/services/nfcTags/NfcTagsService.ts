@@ -63,17 +63,16 @@ export class NfcTagsService {
     this.validateRequiredText(userId, 'userId');
     this.validateRequiredText(claimId, 'claimId');
 
+    const targetClaim = await this.findClaimForUser(userId, claimId);
+
+    if (!targetClaim) {
+      return;
+    }
+
     try {
-      await this.revokeNfcTagClaimInteractor.execute(claimId, userId);
+      await this.revokeNfcTagClaimInteractor.execute(targetClaim.id, userId);
     } catch (error) {
       if (error instanceof NfcTagClaimNotFoundError) {
-        const currentClaim = await this.findCurrentClaim(userId);
-
-        if (!currentClaim) {
-          return;
-        }
-
-        await this.revokeNfcTagClaimInteractor.execute(currentClaim.id, userId);
         return;
       }
 
@@ -98,34 +97,37 @@ export class NfcTagsService {
       throw new BadRequestException('label must have at most 60 characters');
     }
 
+    const targetClaim = await this.findClaimForUser(userId, claimId);
+
+    if (!targetClaim) {
+      throw new NotFoundException('NFC tag claim not found');
+    }
+
     try {
       return await this.updateNfcTagClaimLabelInteractor.execute(
-        claimId,
+        targetClaim.id,
         userId,
         normalizedLabel,
       );
     } catch (error) {
       if (error instanceof NfcTagClaimNotFoundError) {
-        const currentClaim = await this.findCurrentClaim(userId);
-
-        if (!currentClaim) {
-          throw new NotFoundException('NFC tag claim not found');
-        }
-
-        return this.updateNfcTagClaimLabelInteractor.execute(
-          currentClaim.id,
-          userId,
-          normalizedLabel,
-        );
+        throw new NotFoundException('NFC tag claim not found');
       }
 
       throw error;
     }
   }
 
-  private async findCurrentClaim(userId: string): Promise<NfcTagClaim | null> {
+  private async findClaimForUser(
+    userId: string,
+    preferredClaimId: string,
+  ): Promise<NfcTagClaim | null> {
     const claims = await this.listUserNfcTagClaimsInteractor.execute(userId);
-    return claims[0] ?? null;
+    return (
+      claims.find((claim) => claim.id === preferredClaimId) ??
+      claims[0] ??
+      null
+    );
   }
 
   private hashTagIdentifier(tagIdentifier: string): string {
