@@ -131,6 +131,17 @@ export class RitualSessionsService {
       throw new BadRequestException('endedAt must be greater than or equal to startedAt');
     }
 
+    if (
+      data.startSource === 'schedule' &&
+      data.endSource === 'schedule' &&
+      plannedEndAt &&
+      endedAt.getTime() < plannedEndAt.getTime() - 60_000
+    ) {
+      throw new BadRequestException(
+        'scheduled session cannot end before planned end',
+      );
+    }
+
     return this.recordRitualSessionInteractor.execute({
       userId: data.userId,
       ritualId: data.ritualId,

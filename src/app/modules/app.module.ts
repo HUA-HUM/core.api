@@ -4,6 +4,7 @@ import { HealthModule } from './health.module';
 import { RitualsModule } from './rituals/RitualsModule';
 import { RitualSessionsModule } from './ritualSessions/RitualSessionsModule';
 import { NfcTagsModule } from './nfcTags/NfcTagsModule';
+import { InternalAnalyticsModule } from './internalAnalytics/InternalAnalyticsModule';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { NfcTagsModule } from './nfcTags/NfcTagsModule';
     RitualsModule,
     RitualSessionsModule,
     NfcTagsModule,
+    InternalAnalyticsModule,
   ],
 })
 export class AppModule {}
