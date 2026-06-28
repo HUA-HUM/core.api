@@ -411,7 +411,32 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
     );
 
     if (!rows[0]) {
-      return null;
+      const existingRows = await this.queryRows<RitualSessionRow>(
+        `
+          select
+            id,
+            user_id as "userId",
+            ritual_id as "ritualId",
+            started_at as "startedAt",
+            planned_end_at as "plannedEndAt",
+            ended_at as "endedAt",
+            status,
+            start_source as "startSource",
+            end_source as "endSource",
+            duration_seconds as "durationSeconds",
+            created_at as "createdAt",
+            updated_at as "updatedAt"
+          from ritual_sessions
+          where id = $1
+            and user_id = $2
+          limit 1
+        `,
+        [data.id, data.userId],
+      );
+
+      return existingRows[0]
+        ? this.mapRowToRitualSession(existingRows[0])
+        : null;
     }
 
     return this.findById(rows[0].id);

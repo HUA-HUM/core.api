@@ -70,15 +70,45 @@ export class RitualSessionsService {
     );
 
     if (activeSession) {
+      if (activeSession.ritualId === data.ritualId) {
+        return activeSession;
+      }
+
       throw new ConflictException('user already has an active ritual session');
     }
 
-    return this.startRitualSessionInteractor.execute({
-      userId: data.userId,
-      ritualId: data.ritualId,
-      plannedEndAt: this.parseOptionalDate(data.plannedEndAt, 'plannedEndAt'),
-      startSource: data.startSource,
-    });
+    const plannedEndAt = this.parseOptionalDate(
+      data.plannedEndAt,
+      'plannedEndAt',
+    );
+
+    if (plannedEndAt && plannedEndAt.getTime() <= Date.now()) {
+      throw new BadRequestException('plannedEndAt must be in the future');
+    }
+
+    try {
+      return await this.startRitualSessionInteractor.execute({
+        userId: data.userId,
+        ritualId: data.ritualId,
+        plannedEndAt,
+        startSource: data.startSource,
+      });
+    } catch (error) {
+      const concurrentSession =
+        await this.getActiveRitualSessionInteractor.execute(data.userId);
+
+      if (concurrentSession?.ritualId === data.ritualId) {
+        return concurrentSession;
+      }
+
+      if (concurrentSession) {
+        throw new ConflictException(
+          'user already has an active ritual session',
+        );
+      }
+
+      throw error;
+    }
   }
 
   async getActive(userId: string): Promise<RitualSession | null> {
@@ -90,7 +120,6 @@ export class RitualSessionsService {
     this.validateRequiredText(userId, 'userId');
     return this.listUserRitualSessionsInteractor.execute(userId);
   }
-
 
   async summary(userId: string): Promise<RitualSessionSummary> {
     this.validateRequiredText(userId, 'userId');
@@ -120,15 +149,23 @@ export class RitualSessionsService {
     await this.ritualsService.getById(data.userId, data.ritualId);
 
     const startedAt = this.parseRequiredDate(data.startedAt, 'startedAt');
-    const plannedEndAt = this.parseOptionalDate(data.plannedEndAt, 'plannedEndAt');
-    let endedAt = this.parseOptionalDate(data.endedAt, 'endedAt') ?? plannedEndAt ?? startedAt;
+    const plannedEndAt = this.parseOptionalDate(
+      data.plannedEndAt,
+      'plannedEndAt',
+    );
+    let endedAt =
+      this.parseOptionalDate(data.endedAt, 'endedAt') ??
+      plannedEndAt ??
+      startedAt;
 
     if (plannedEndAt && endedAt.getTime() > plannedEndAt.getTime()) {
       endedAt = plannedEndAt;
     }
 
     if (endedAt.getTime() < startedAt.getTime()) {
-      throw new BadRequestException('endedAt must be greater than or equal to startedAt');
+      throw new BadRequestException(
+        'endedAt must be greater than or equal to startedAt',
+      );
     }
 
     if (
@@ -186,13 +223,17 @@ export class RitualSessionsService {
 
   private validateStartSource(value: RitualSessionStartSource): void {
     if (!['manual', 'schedule', 'nfc'].includes(value)) {
-      throw new BadRequestException('startSource must be manual, schedule or nfc');
+      throw new BadRequestException(
+        'startSource must be manual, schedule or nfc',
+      );
     }
   }
 
   private validateEndSource(value: RitualSessionEndSource): void {
     if (!['timer', 'manual', 'nfc', 'schedule'].includes(value)) {
-      throw new BadRequestException('endSource must be timer, manual, nfc or schedule');
+      throw new BadRequestException(
+        'endSource must be timer, manual, nfc or schedule',
+      );
     }
   }
 
@@ -204,7 +245,10 @@ export class RitualSessionsService {
     return date;
   }
 
-  private parseOptionalDate(value: string | null | undefined, fieldName: string): Date | null {
+  private parseOptionalDate(
+    value: string | null | undefined,
+    fieldName: string,
+  ): Date | null {
     if (!value) {
       return null;
     }
