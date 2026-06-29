@@ -7,6 +7,7 @@ import { ModesModule } from './modes/ModesModule';
 import { ModeSessionsModule } from './modeSessions/ModeSessionsModule';
 import { NfcTagsModule } from './nfcTags/NfcTagsModule';
 import { InternalAnalyticsModule } from './internalAnalytics/InternalAnalyticsModule';
+import { FocusMetricsModule } from './focusMetrics/FocusMetricsModule';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { InternalAnalyticsModule } from './internalAnalytics/InternalAnalyticsMo
     ModeSessionsModule,
     NfcTagsModule,
     InternalAnalyticsModule,
+    FocusMetricsModule,
   ],
 })
 export class AppModule {}

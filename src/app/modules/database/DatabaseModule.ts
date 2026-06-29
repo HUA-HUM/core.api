@@ -9,6 +9,7 @@ import { MODE_BLOCKED_ITEMS_REPOSITORY } from '../../../core/adapters/repositori
 import { MODE_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/modeSessions/IModeSessionsRepository';
 import { NFC_TAGS_REPOSITORY } from '../../../core/adapters/repositories/nfcTags/INfcTagsRepository';
 import { INTERNAL_ANALYTICS_REPOSITORY } from '../../../core/adapters/repositories/internalAnalytics/IInternalAnalyticsRepository';
+import { FOCUS_METRICS_REPOSITORY } from '../../../core/adapters/repositories/focusMetrics/IFocusMetricsRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
 import { SQLRitualSessionsRepository } from '../../drivers/repositories/ritualSessions/SQLRitualSessionsRepository';
@@ -17,6 +18,7 @@ import { SQLModeBlockedItemsRepository } from '../../drivers/repositories/modeBl
 import { SQLModeSessionsRepository } from '../../drivers/repositories/modeSessions/SQLModeSessionsRepository';
 import { SQLNfcTagsRepository } from '../../drivers/repositories/nfcTags/SQLNfcTagsRepository';
 import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/internalAnalytics/SQLInternalAnalyticsRepository';
+import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetrics/SQLFocusMetricsRepository';
 
 @Global()
 @Module({
@@ -61,6 +63,10 @@ import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/inter
       provide: INTERNAL_ANALYTICS_REPOSITORY,
       useClass: SQLInternalAnalyticsRepository,
     },
+    {
+      provide: FOCUS_METRICS_REPOSITORY,
+      useClass: SQLFocusMetricsRepository,
+    },
   ],
   exports: [
     RITUALS_REPOSITORY,
@@ -71,6 +77,7 @@ import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/inter
     MODE_SESSIONS_REPOSITORY,
     NFC_TAGS_REPOSITORY,
     INTERNAL_ANALYTICS_REPOSITORY,
+    FOCUS_METRICS_REPOSITORY,
   ],
 })
 export class DatabaseModule {}
