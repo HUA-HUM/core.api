@@ -10,6 +10,7 @@ import { MODE_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/mo
 import { NFC_TAGS_REPOSITORY } from '../../../core/adapters/repositories/nfcTags/INfcTagsRepository';
 import { INTERNAL_ANALYTICS_REPOSITORY } from '../../../core/adapters/repositories/internalAnalytics/IInternalAnalyticsRepository';
 import { FOCUS_METRICS_REPOSITORY } from '../../../core/adapters/repositories/focusMetrics/IFocusMetricsRepository';
+import { LANDING_WAITLIST_LEADS_REPOSITORY } from '../../../core/adapters/repositories/landingWaitlistLeads/ILandingWaitlistLeadsRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
 import { SQLRitualSessionsRepository } from '../../drivers/repositories/ritualSessions/SQLRitualSessionsRepository';
@@ -19,6 +20,7 @@ import { SQLModeSessionsRepository } from '../../drivers/repositories/modeSessio
 import { SQLNfcTagsRepository } from '../../drivers/repositories/nfcTags/SQLNfcTagsRepository';
 import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/internalAnalytics/SQLInternalAnalyticsRepository';
 import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetrics/SQLFocusMetricsRepository';
+import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/landingWaitlistLeads/SQLLandingWaitlistLeadsRepository';
 
 @Global()
 @Module({
@@ -67,6 +69,10 @@ import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetri
       provide: FOCUS_METRICS_REPOSITORY,
       useClass: SQLFocusMetricsRepository,
     },
+    {
+      provide: LANDING_WAITLIST_LEADS_REPOSITORY,
+      useClass: SQLLandingWaitlistLeadsRepository,
+    },
   ],
   exports: [
     RITUALS_REPOSITORY,
@@ -78,6 +84,7 @@ import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetri
     NFC_TAGS_REPOSITORY,
     INTERNAL_ANALYTICS_REPOSITORY,
     FOCUS_METRICS_REPOSITORY,
+    LANDING_WAITLIST_LEADS_REPOSITORY,
   ],
 })
 export class DatabaseModule {}

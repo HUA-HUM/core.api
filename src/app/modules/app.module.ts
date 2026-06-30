@@ -8,6 +8,7 @@ import { ModeSessionsModule } from './modeSessions/ModeSessionsModule';
 import { NfcTagsModule } from './nfcTags/NfcTagsModule';
 import { InternalAnalyticsModule } from './internalAnalytics/InternalAnalyticsModule';
 import { FocusMetricsModule } from './focusMetrics/FocusMetricsModule';
+import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitlistLeadsModule';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { FocusMetricsModule } from './focusMetrics/FocusMetricsModule';
     NfcTagsModule,
     InternalAnalyticsModule,
     FocusMetricsModule,
+    LandingWaitlistLeadsModule,
   ],
 })
 export class AppModule {}

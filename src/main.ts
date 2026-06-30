@@ -6,6 +6,14 @@ import { env } from './config/env';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  if (env.corsOrigins.length > 0) {
+    app.enableCors({
+      origin: env.corsOrigins,
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-api-key'],
+      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    });
+  }
+
   const config = new DocumentBuilder()
     .setTitle('Rituo Core API')
     .setDescription('Core API para rituales, sesiones y foco de Rituo')
