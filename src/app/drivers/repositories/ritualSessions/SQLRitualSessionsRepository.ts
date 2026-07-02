@@ -12,6 +12,7 @@ import {
   StartRitualSessionData,
 } from '../../../../core/entities/ritualSessions/RitualSession';
 import { RitualSessionSummary } from '../../../../core/entities/ritualSessions/RitualSessionSummary';
+import { FocusSessionAlreadyActiveError } from '../../../../core/interactors/focusSessions/FocusSessionAlreadyActiveError';
 
 interface RitualSessionSummaryRow {
   totalSessions: string | number;
@@ -55,34 +56,68 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
   ) {}
 
   async create(data: StartRitualSessionData): Promise<RitualSession> {
-    const rows = await this.queryRows<RitualSessionRow>(
-      `
-        insert into ritual_sessions (
-          user_id,
-          ritual_id,
-          planned_end_at,
-          start_source,
-          status
-        )
-        values ($1, $2, $3, $4, 'active')
-        returning
-          id,
-          user_id as "userId",
-          ritual_id as "ritualId",
-          started_at as "startedAt",
-          planned_end_at as "plannedEndAt",
-          ended_at as "endedAt",
-          status,
-          start_source as "startSource",
-          end_source as "endSource",
-          duration_seconds as "durationSeconds",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-      `,
-      [data.userId, data.ritualId, data.plannedEndAt ?? null, data.startSource],
-    );
+    return this.entityManager.transaction(async (manager) => {
+      await manager.query(
+        'select pg_advisory_xact_lock(hashtextextended($1, 0))',
+        [data.userId],
+      );
 
-    return this.mapRowToRitualSession(rows[0]);
+      const activeRows = this.rowsFromResult<{ sessionType: string }>(
+        await manager.query(
+          `
+            select 'ritual' as "sessionType"
+            from ritual_sessions
+            where user_id = $1 and status = 'active'
+            union all
+            select 'mode' as "sessionType"
+            from mode_sessions
+            where user_id = $1 and status = 'active'
+            limit 1
+          `,
+          [data.userId],
+        ),
+      );
+
+      if (activeRows.length > 0) {
+        throw new FocusSessionAlreadyActiveError();
+      }
+
+      const rows = this.rowsFromResult<RitualSessionRow>(
+        await manager.query(
+          `
+            insert into ritual_sessions (
+              user_id,
+              ritual_id,
+              planned_end_at,
+              start_source,
+              status
+            )
+            values ($1, $2, $3, $4, 'active')
+            returning
+              id,
+              user_id as "userId",
+              ritual_id as "ritualId",
+              started_at as "startedAt",
+              planned_end_at as "plannedEndAt",
+              ended_at as "endedAt",
+              status,
+              start_source as "startSource",
+              end_source as "endSource",
+              duration_seconds as "durationSeconds",
+              created_at as "createdAt",
+              updated_at as "updatedAt"
+          `,
+          [
+            data.userId,
+            data.ritualId,
+            data.plannedEndAt ?? null,
+            data.startSource,
+          ],
+        ),
+      );
+
+      return this.mapRowToRitualSession(rows[0]);
+    });
   }
 
   async record(data: RecordRitualSessionData): Promise<RitualSession> {
@@ -535,6 +570,19 @@ export class SQLRitualSessionsRepository implements IRitualSessionsRepository {
 
   private async queryRows<T>(sql: string, params: unknown[]): Promise<T[]> {
     const result: unknown = await this.entityManager.query(sql, params);
+    return this.rowsFromResult<T>(result);
+  }
+
+  private rowsFromResult<T>(result: unknown): T[] {
+    if (
+      Array.isArray(result) &&
+      result.length === 2 &&
+      Array.isArray(result[0]) &&
+      typeof result[1] === 'number'
+    ) {
+      return result[0] as T[];
+    }
+
     return result as T[];
   }
 }

@@ -13,6 +13,11 @@ import { ModeSessionsController } from '../../controllers/modeSessions/ModeSessi
 import { ModeSessionsService } from '../../services/modeSessions/ModeSessionsService';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
 import { ModesModule } from '../modes/ModesModule';
+import {
+  IRitualSessionsRepository,
+  RITUAL_SESSIONS_REPOSITORY,
+} from '../../../core/adapters/repositories/ritualSessions/IRitualSessionsRepository';
+import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
 
 @Module({
   imports: [JwtAuthModule, ModesModule],
@@ -29,6 +34,12 @@ import { ModesModule } from '../modes/ModesModule';
       useFactory: (modeSessionsRepository: IModeSessionsRepository) =>
         new GetActiveModeSessionInteractor(modeSessionsRepository),
       inject: [MODE_SESSIONS_REPOSITORY],
+    },
+    {
+      provide: GetActiveRitualSessionInteractor,
+      useFactory: (ritualSessionsRepository: IRitualSessionsRepository) =>
+        new GetActiveRitualSessionInteractor(ritualSessionsRepository),
+      inject: [RITUAL_SESSIONS_REPOSITORY],
     },
     {
       provide: ListUserModeSessionsInteractor,

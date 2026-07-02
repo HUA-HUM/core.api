@@ -6,6 +6,7 @@ describe('RitualSessionsService start validation', () => {
   const ritualsService = { getById: jest.fn() };
   const startInteractor = { execute: jest.fn() };
   const getActiveInteractor = { execute: jest.fn() };
+  const getActiveModeInteractor = { execute: jest.fn() };
   const listInteractor = { execute: jest.fn() };
   const listByRitualInteractor = { execute: jest.fn() };
   const summaryInteractor = { execute: jest.fn() };
@@ -16,6 +17,7 @@ describe('RitualSessionsService start validation', () => {
     ritualsService as never,
     startInteractor as never,
     getActiveInteractor as never,
+    getActiveModeInteractor as never,
     listInteractor as never,
     listByRitualInteractor as never,
     summaryInteractor as never,
@@ -26,6 +28,7 @@ describe('RitualSessionsService start validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     ritualsService.getById.mockResolvedValue({ id: 'ritual-id' });
+    getActiveModeInteractor.execute.mockResolvedValue(null);
   });
 
   it('returns the existing session when the same ritual is started twice', async () => {
@@ -44,6 +47,18 @@ describe('RitualSessionsService start validation', () => {
     await expect(service.start(startRequest())).rejects.toBeInstanceOf(
       ConflictException,
     );
+  });
+
+  it('rejects starting a ritual while a mode session is active', async () => {
+    getActiveInteractor.execute.mockResolvedValue(null);
+    getActiveModeInteractor.execute.mockResolvedValue({
+      id: 'mode-session-id',
+    });
+
+    await expect(service.start(startRequest())).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(startInteractor.execute).not.toHaveBeenCalled();
   });
 
   it('rejects a planned end date in the past', async () => {

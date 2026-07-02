@@ -19,6 +19,8 @@ import {
   RitualSessionStatus,
 } from '../../../core/entities/ritualSessions/RitualSession';
 import { RitualSessionSummary } from '../../../core/entities/ritualSessions/RitualSessionSummary';
+import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
+import { FocusSessionAlreadyActiveError } from '../../../core/interactors/focusSessions/FocusSessionAlreadyActiveError';
 
 export interface StartRitualSessionServiceData {
   userId: string;
@@ -51,6 +53,7 @@ export class RitualSessionsService {
     private readonly ritualsService: RitualsService,
     private readonly startRitualSessionInteractor: StartRitualSessionInteractor,
     private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
+    private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
     private readonly listUserRitualSessionsInteractor: ListUserRitualSessionsInteractor,
     private readonly listRitualSessionsByRitualInteractor: ListRitualSessionsByRitualInteractor,
     private readonly getRitualSessionSummaryInteractor: GetRitualSessionSummaryInteractor,
@@ -75,6 +78,14 @@ export class RitualSessionsService {
       }
 
       throw new ConflictException('user already has an active ritual session');
+    }
+
+    const activeModeSession = await this.getActiveModeSessionInteractor.execute(
+      data.userId,
+    );
+
+    if (activeModeSession) {
+      throw new ConflictException('user already has an active focus session');
     }
 
     const plannedEndAt = this.parseOptionalDate(
@@ -105,6 +116,17 @@ export class RitualSessionsService {
         throw new ConflictException(
           'user already has an active ritual session',
         );
+      }
+
+      const concurrentModeSession =
+        await this.getActiveModeSessionInteractor.execute(data.userId);
+
+      if (concurrentModeSession) {
+        throw new ConflictException('user already has an active focus session');
+      }
+
+      if (error instanceof FocusSessionAlreadyActiveError) {
+        throw new ConflictException('user already has an active focus session');
       }
 
       throw error;

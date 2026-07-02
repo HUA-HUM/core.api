@@ -11,6 +11,7 @@ import {
   StartModeSessionData,
 } from '../../../../core/entities/modeSessions/ModeSession';
 import { ModeSessionSummary } from '../../../../core/entities/modeSessions/ModeSessionSummary';
+import { FocusSessionAlreadyActiveError } from '../../../../core/interactors/focusSessions/FocusSessionAlreadyActiveError';
 
 interface ModeSessionSummaryRow {
   totalSessions: string | number;
@@ -52,32 +53,61 @@ export class SQLModeSessionsRepository implements IModeSessionsRepository {
   ) {}
 
   async create(data: StartModeSessionData): Promise<ModeSession> {
-    const rows = await this.queryRows<ModeSessionRow>(
-      `
-        insert into mode_sessions (
-          user_id,
-          mode_id,
-          start_source,
-          status
-        )
-        values ($1, $2, $3, 'active')
-        returning
-          id,
-          user_id as "userId",
-          mode_id as "modeId",
-          started_at as "startedAt",
-          ended_at as "endedAt",
-          status,
-          start_source as "startSource",
-          end_source as "endSource",
-          duration_seconds as "durationSeconds",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-      `,
-      [data.userId, data.modeId, data.startSource],
-    );
+    return this.entityManager.transaction(async (manager) => {
+      await manager.query(
+        'select pg_advisory_xact_lock(hashtextextended($1, 0))',
+        [data.userId],
+      );
 
-    return this.mapRowToModeSession(rows[0]);
+      const activeRows = this.rowsFromResult<{ sessionType: string }>(
+        await manager.query(
+          `
+            select 'ritual' as "sessionType"
+            from ritual_sessions
+            where user_id = $1 and status = 'active'
+            union all
+            select 'mode' as "sessionType"
+            from mode_sessions
+            where user_id = $1 and status = 'active'
+            limit 1
+          `,
+          [data.userId],
+        ),
+      );
+
+      if (activeRows.length > 0) {
+        throw new FocusSessionAlreadyActiveError();
+      }
+
+      const rows = this.rowsFromResult<ModeSessionRow>(
+        await manager.query(
+          `
+            insert into mode_sessions (
+              user_id,
+              mode_id,
+              start_source,
+              status
+            )
+            values ($1, $2, $3, 'active')
+            returning
+              id,
+              user_id as "userId",
+              mode_id as "modeId",
+              started_at as "startedAt",
+              ended_at as "endedAt",
+              status,
+              start_source as "startSource",
+              end_source as "endSource",
+              duration_seconds as "durationSeconds",
+              created_at as "createdAt",
+              updated_at as "updatedAt"
+          `,
+          [data.userId, data.modeId, data.startSource],
+        ),
+      );
+
+      return this.mapRowToModeSession(rows[0]);
+    });
   }
 
   async findActiveByUserId(userId: string): Promise<ModeSession | null> {
@@ -340,6 +370,10 @@ export class SQLModeSessionsRepository implements IModeSessionsRepository {
   private async queryRows<T>(sql: string, params: unknown[]): Promise<T[]> {
     const result: unknown = await this.entityManager.query(sql, params);
 
+    return this.rowsFromResult<T>(result);
+  }
+
+  private rowsFromResult<T>(result: unknown): T[] {
     if (
       Array.isArray(result) &&
       result.length === 2 &&

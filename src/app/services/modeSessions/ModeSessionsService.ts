@@ -11,6 +11,8 @@ import { GetModeSessionSummaryInteractor } from '../../../core/interactors/modeS
 import { ListModeSessionsByModeInteractor } from '../../../core/interactors/modeSessions/ListModeSessionsByModeInteractor';
 import { ListUserModeSessionsInteractor } from '../../../core/interactors/modeSessions/ListUserModeSessionsInteractor';
 import { StartModeSessionInteractor } from '../../../core/interactors/modeSessions/StartModeSessionInteractor';
+import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
+import { FocusSessionAlreadyActiveError } from '../../../core/interactors/focusSessions/FocusSessionAlreadyActiveError';
 import {
   ModeSession,
   ModeSessionEndSource,
@@ -38,6 +40,7 @@ export class ModeSessionsService {
     private readonly modesService: ModesService,
     private readonly startModeSessionInteractor: StartModeSessionInteractor,
     private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
+    private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
     private readonly listUserModeSessionsInteractor: ListUserModeSessionsInteractor,
     private readonly listModeSessionsByModeInteractor: ListModeSessionsByModeInteractor,
     private readonly getModeSessionSummaryInteractor: GetModeSessionSummaryInteractor,
@@ -63,6 +66,13 @@ export class ModeSessionsService {
       throw new ConflictException('user already has an active mode session');
     }
 
+    const activeRitualSession =
+      await this.getActiveRitualSessionInteractor.execute(data.userId);
+
+    if (activeRitualSession) {
+      throw new ConflictException('user already has an active focus session');
+    }
+
     try {
       return await this.startModeSessionInteractor.execute({
         userId: data.userId,
@@ -79,6 +89,17 @@ export class ModeSessionsService {
 
       if (concurrentSession) {
         throw new ConflictException('user already has an active mode session');
+      }
+
+      const concurrentRitualSession =
+        await this.getActiveRitualSessionInteractor.execute(data.userId);
+
+      if (concurrentRitualSession) {
+        throw new ConflictException('user already has an active focus session');
+      }
+
+      if (error instanceof FocusSessionAlreadyActiveError) {
+        throw new ConflictException('user already has an active focus session');
       }
 
       throw error;
