@@ -48,6 +48,10 @@ export class NfcTagsController {
   @Post('claim')
   @ApiOperation({ summary: 'Claim an NFC tag for the authenticated user' })
   @ApiResponse({ status: 201, type: NfcTagClaimResponseDto })
+  @ApiResponse({
+    status: 409,
+    description: 'NFC tag already claimed by another user',
+  })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async claim(
     @Req() request: AuthenticatedRequest,
@@ -63,7 +67,9 @@ export class NfcTagsController {
   }
 
   @Post('verify')
-  @ApiOperation({ summary: 'Verify if an NFC tag belongs to the authenticated user' })
+  @ApiOperation({
+    summary: 'Verify if an NFC tag belongs to the authenticated user',
+  })
   @ApiResponse({ status: 201, type: VerifyNfcTagResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async verify(
@@ -82,7 +88,9 @@ export class NfcTagsController {
   }
 
   @Patch(':claimId')
-  @ApiOperation({ summary: 'Rename an NFC tag claim for the authenticated user' })
+  @ApiOperation({
+    summary: 'Rename an NFC tag claim for the authenticated user',
+  })
   @ApiResponse({ status: 200, type: NfcTagClaimResponseDto })
   @ApiResponse({ status: 404, description: 'NFC tag claim not found' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
@@ -102,7 +110,9 @@ export class NfcTagsController {
 
   @Delete(':claimId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Revoke an NFC tag claim for the authenticated user' })
+  @ApiOperation({
+    summary: 'Revoke an NFC tag claim for the authenticated user',
+  })
   @ApiResponse({ status: 204, description: 'NFC tag claim revoked' })
   @ApiResponse({ status: 404, description: 'NFC tag claim not found' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })

@@ -9,6 +9,7 @@ export const NFC_TAGS_REPOSITORY = Symbol('NFC_TAGS_REPOSITORY');
 export interface INfcTagsRepository {
   claim(data: ClaimNfcTagData): Promise<NfcTagClaim>;
   findClaimsByUserId(userId: string): Promise<NfcTagClaim[]>;
+  findActiveClaimByTagHash(tagHash: string): Promise<NfcTagClaim | null>;
   findActiveClaim(data: VerifyNfcTagData): Promise<NfcTagClaim | null>;
   touchClaim(id: string): Promise<NfcTagClaim>;
   updateClaimLabel(

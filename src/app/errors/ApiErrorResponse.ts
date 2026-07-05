@@ -6,6 +6,7 @@ export const ApiErrorCode = {
   modeNotActive: 'MODE_NOT_ACTIVE',
   nfcRequiredToFinish: 'NFC_REQUIRED_TO_FINISH',
   nfcTagInUse: 'NFC_TAG_IN_USE',
+  nfcTagAlreadyClaimed: 'NFC_TAG_ALREADY_CLAIMED',
   nfcTagRequired: 'NFC_TAG_REQUIRED',
   ritualBlockedItemsRequired: 'RITUAL_BLOCKED_ITEMS_REQUIRED',
   ritualNotActive: 'RITUAL_NOT_ACTIVE',

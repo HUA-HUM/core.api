@@ -7,6 +7,7 @@ describe('UpdateNfcTagClaimLabelInteractor', () => {
   const nfcTagsRepository: jest.Mocked<INfcTagsRepository> = {
     claim: jest.fn(),
     findClaimsByUserId: jest.fn(),
+    findActiveClaimByTagHash: jest.fn(),
     findActiveClaim: jest.fn(),
     touchClaim: jest.fn(),
     updateClaimLabel: jest.fn(),

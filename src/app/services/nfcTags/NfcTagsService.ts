@@ -13,6 +13,7 @@ import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/R
 import { NfcTagClaimNotFoundError } from '../../../core/interactors/nfcTags/NfcTagClaimNotFoundError';
 import { UpdateNfcTagClaimLabelInteractor } from '../../../core/interactors/nfcTags/UpdateNfcTagClaimLabelInteractor';
 import { NfcTagClaim } from '../../../core/entities/nfcTags/NfcTag';
+import { NfcTagAlreadyClaimedError } from '../../../core/interactors/nfcTags/NfcTagAlreadyClaimedError';
 import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
 import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
 import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
@@ -49,11 +50,24 @@ export class NfcTagsService {
     this.validateRequiredText(data.userId, 'userId');
     const tagHash = this.hashTagIdentifier(data.tagIdentifier);
 
-    return this.claimNfcTagInteractor.execute({
-      userId: data.userId,
-      tagHash,
-      label: this.normalizeNullableText(data.label),
-    });
+    try {
+      return await this.claimNfcTagInteractor.execute({
+        userId: data.userId,
+        tagHash,
+        label: this.normalizeNullableText(data.label),
+      });
+    } catch (error) {
+      if (error instanceof NfcTagAlreadyClaimedError) {
+        throw new ConflictException(
+          apiError(
+            ApiErrorCode.nfcTagAlreadyClaimed,
+            'nfc tag already belongs to another user',
+          ),
+        );
+      }
+
+      throw error;
+    }
   }
 
   async verify(data: VerifyNfcTagServiceData): Promise<NfcTagClaim | null> {

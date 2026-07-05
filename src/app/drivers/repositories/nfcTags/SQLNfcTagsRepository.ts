@@ -8,6 +8,7 @@ import {
   VerifyNfcTagData,
 } from '../../../../core/entities/nfcTags/NfcTag';
 import { INfcTagsRepository } from '../../../../core/adapters/repositories/nfcTags/INfcTagsRepository';
+import { NfcTagAlreadyClaimedError } from '../../../../core/interactors/nfcTags/NfcTagAlreadyClaimedError';
 
 interface NfcTagClaimRow {
   id: string;
@@ -43,14 +44,26 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
   async claim(data: ClaimNfcTagData): Promise<NfcTagClaim> {
     const rows = await this.queryRows<NfcTagClaimRow>(
       `
-        with tag as (
+        with tag_lock as (
+          select pg_advisory_xact_lock(hashtextextended($2, 0))
+        ),
+        tag as (
           insert into nfc_tags (tag_hash, status)
-          values ($2, 'active')
+          select $2, 'active'
+          from tag_lock
           on conflict (tag_hash)
           do update set
             status = 'active',
             updated_at = now()
           returning id
+        ),
+        existing_other_owner as (
+          select claims.id
+          from nfc_tag_claims claims
+          where claims.tag_id = (select id from tag)
+            and claims.user_id <> $1
+            and claims.status = 'active'
+          limit 1
         ),
         revoked_previous_claims as (
           update nfc_tag_claims
@@ -60,6 +73,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
           where user_id = $1
             and status = 'active'
             and tag_id <> (select id from tag)
+            and not exists (select 1 from existing_other_owner)
           returning id
         ),
         claim as (
@@ -80,6 +94,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
             now()
           from tag
           left join revoked_previous_claims on true
+          where not exists (select 1 from existing_other_owner)
           group by tag.id
           on conflict (tag_id, user_id)
           do update set
@@ -102,6 +117,10 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
       `,
       [data.userId, data.tagHash, data.label ?? null],
     );
+
+    if (!rows[0]) {
+      throw new NfcTagAlreadyClaimedError();
+    }
 
     return this.mapRowToClaim(rows[0]);
   }
@@ -130,6 +149,33 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     );
 
     return rows.map((row) => this.mapRowToClaim(row));
+  }
+
+  async findActiveClaimByTagHash(tagHash: string): Promise<NfcTagClaim | null> {
+    const rows = await this.queryRows<NfcTagClaimRow>(
+      `
+        select
+          claims.id,
+          claims.tag_id as "tagId",
+          claims.user_id as "userId",
+          claims.label,
+          claims.status,
+          claims.claimed_at as "claimedAt",
+          claims.last_seen_at as "lastSeenAt",
+          claims.created_at as "createdAt",
+          claims.updated_at as "updatedAt"
+        from nfc_tag_claims claims
+        inner join nfc_tags tags on tags.id = claims.tag_id
+        where tags.tag_hash = $1
+          and claims.status = 'active'
+          and tags.status = 'active'
+        order by claims.claimed_at asc
+        limit 1
+      `,
+      [tagHash],
+    );
+
+    return rows[0] ? this.mapRowToClaim(rows[0]) : null;
   }
 
   async findActiveClaim(data: VerifyNfcTagData): Promise<NfcTagClaim | null> {
