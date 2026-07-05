@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
@@ -11,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -24,13 +26,17 @@ import { UpdateModeDto } from '../../dtos/modes/UpdateModeDto';
 import { ReplaceModeBlockedItemsDto } from '../../dtos/modeBlockedItems/ReplaceModeBlockedItemsDto';
 import { ModeBlockedItemResponseDto } from '../../dtos/modeBlockedItems/ModeBlockedItemResponseDto';
 import type { ModeBlockedItemPlatform } from '../../../core/entities/modeBlockedItems/ModeBlockedItem';
+import { IdempotencyService } from '../../services/idempotency/IdempotencyService';
 
 @ApiTags('modes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('modes')
 export class ModesController {
-  constructor(private readonly modesService: ModesService) {}
+  constructor(
+    private readonly modesService: ModesService,
+    private readonly idempotencyService: IdempotencyService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List modes for the authenticated user' })
@@ -55,14 +61,37 @@ export class ModesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update mode configuration' })
+  @ApiHeader({ name: 'Idempotency-Key', required: false })
   @ApiResponse({ status: 200, type: ModeResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async update(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() body: UpdateModeDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<ModeResponseDto> {
-    const mode = await this.modesService.update(request.authUser.id, id, body);
+    const mode = await this.idempotencyService.execute({
+      userId: request.authUser.id,
+      key: idempotencyKey,
+      operation: 'update_mode_configuration',
+      request: {
+        modeId: id,
+        title: body.title,
+        icon: body.icon,
+        appCount: body.appCount,
+        categoryCount: body.categoryCount,
+        domainCount: body.domainCount,
+        selectionDigest: body.selectionDigest ?? null,
+        isProtected: body.isProtected ?? false,
+        nfcUnlockEnabled: body.nfcUnlockEnabled ?? false,
+        passwordProvided: Boolean(body.password),
+      },
+      resourceType: 'mode',
+      execute: () => this.modesService.update(request.authUser.id, id, body),
+      replay: (resourceId) =>
+        this.modesService.getById(request.authUser.id, resourceId),
+      resourceId: (result) => result.id,
+    });
     return ModeResponseDto.fromEntity(mode);
   }
 
@@ -86,19 +115,40 @@ export class ModesController {
 
   @Post(':id/blocked-items')
   @ApiOperation({ summary: 'Replace blocked items for a mode' })
+  @ApiHeader({ name: 'Idempotency-Key', required: false })
   @ApiResponse({ status: 201, type: [ModeBlockedItemResponseDto] })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async replaceBlockedItems(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() body: ReplaceModeBlockedItemsDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<ModeBlockedItemResponseDto[]> {
-    const items = await this.modesService.replaceBlockedItems(
-      request.authUser.id,
-      id,
-      body.platform,
-      body.items,
-    );
+    const items = await this.idempotencyService.execute({
+      userId: request.authUser.id,
+      key: idempotencyKey,
+      operation: 'replace_mode_blocked_items',
+      request: {
+        modeId: id,
+        platform: body.platform ?? null,
+        items: body.items,
+      },
+      resourceType: 'mode_blocked_items',
+      execute: () =>
+        this.modesService.replaceBlockedItems(
+          request.authUser.id,
+          id,
+          body.platform,
+          body.items,
+        ),
+      replay: () =>
+        this.modesService.listBlockedItems(
+          request.authUser.id,
+          id,
+          body.platform,
+        ),
+      resourceId: () => id,
+    });
 
     return items.map((item) => ModeBlockedItemResponseDto.fromEntity(item));
   }

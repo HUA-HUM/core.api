@@ -18,7 +18,13 @@ export interface IdempotentExecution<T> {
   key?: string;
   operation: string;
   request: object;
-  resourceType: 'ritual_session' | 'mode_session';
+  resourceType:
+    | 'ritual_session'
+    | 'mode_session'
+    | 'ritual'
+    | 'mode'
+    | 'ritual_blocked_items'
+    | 'mode_blocked_items';
   execute: () => Promise<T>;
   replay: (resourceId: string) => Promise<T>;
   resourceId: (result: T) => string;
