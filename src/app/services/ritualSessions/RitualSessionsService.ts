@@ -52,6 +52,7 @@ export interface RecordRitualSessionServiceData {
   status: Exclude<RitualSessionStatus, 'active'>;
   startSource: RitualSessionStartSource;
   endSource: RitualSessionEndSource;
+  idempotencyKey?: string;
 }
 
 @Injectable()
@@ -217,15 +218,33 @@ export class RitualSessionsService {
       );
     }
 
-    return this.recordRitualSessionInteractor.execute({
+    return this.idempotencyService.execute({
       userId: data.userId,
-      ritualId: data.ritualId,
-      startedAt,
-      plannedEndAt,
-      endedAt,
-      status: data.status,
-      startSource: data.startSource,
-      endSource: data.endSource,
+      key: data.idempotencyKey,
+      operation: 'record_scheduled_ritual_session',
+      request: {
+        ritualId: data.ritualId,
+        startedAt,
+        plannedEndAt,
+        endedAt,
+        status: data.status,
+        startSource: data.startSource,
+        endSource: data.endSource,
+      },
+      resourceType: 'ritual_session',
+      execute: () =>
+        this.recordRitualSessionInteractor.execute({
+          userId: data.userId,
+          ritualId: data.ritualId,
+          startedAt,
+          plannedEndAt,
+          endedAt,
+          status: data.status,
+          startSource: data.startSource,
+          endSource: data.endSource,
+        }),
+      replay: (resourceId) => this.replaySession(data.userId, resourceId),
+      resourceId: (session) => session.id,
     });
   }
 
@@ -250,8 +269,7 @@ export class RitualSessionsService {
       },
       resourceType: 'ritual_session',
       execute: () => this.finishOnce(data, status),
-      replay: (resourceId) =>
-        this.replayFinishedSession(data.userId, resourceId),
+      replay: (resourceId) => this.replaySession(data.userId, resourceId),
       resourceId: (session) => session.id,
     });
   }
@@ -305,7 +323,7 @@ export class RitualSessionsService {
     return session;
   }
 
-  private async replayFinishedSession(
+  private async replaySession(
     userId: string,
     resourceId: string,
   ): Promise<RitualSession> {

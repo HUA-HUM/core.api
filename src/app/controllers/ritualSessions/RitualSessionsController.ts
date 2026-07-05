@@ -34,11 +34,17 @@ export class RitualSessionsController {
 
   @Post('record')
   @ApiOperation({ summary: 'Record a ritual session that already happened' })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description: 'Unique key used to safely retry this request',
+  })
   @ApiResponse({ status: 201, type: RitualSessionResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async record(
     @Req() request: AuthenticatedRequest,
     @Body() body: RecordRitualSessionDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<RitualSessionResponseDto> {
     const session = await this.ritualSessionsService.record({
       userId: request.authUser.id,
@@ -49,6 +55,7 @@ export class RitualSessionsController {
       status: body.status,
       startSource: body.startSource,
       endSource: body.endSource,
+      idempotencyKey,
     });
 
     return RitualSessionResponseDto.fromEntity(session);
