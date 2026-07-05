@@ -18,9 +18,11 @@ import {
   RITUAL_SESSIONS_REPOSITORY,
 } from '../../../core/adapters/repositories/ritualSessions/IRitualSessionsRepository';
 import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
+import { GetModeSessionInteractor } from '../../../core/interactors/modeSessions/GetModeSessionInteractor';
+import { NfcTagsModule } from '../nfcTags/NfcTagsModule';
 
 @Module({
-  imports: [JwtAuthModule, ModesModule],
+  imports: [JwtAuthModule, ModesModule, NfcTagsModule],
   controllers: [ModeSessionsController],
   providers: [
     {
@@ -40,6 +42,12 @@ import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritu
       useFactory: (ritualSessionsRepository: IRitualSessionsRepository) =>
         new GetActiveRitualSessionInteractor(ritualSessionsRepository),
       inject: [RITUAL_SESSIONS_REPOSITORY],
+    },
+    {
+      provide: GetModeSessionInteractor,
+      useFactory: (modeSessionsRepository: IModeSessionsRepository) =>
+        new GetModeSessionInteractor(modeSessionsRepository),
+      inject: [MODE_SESSIONS_REPOSITORY],
     },
     {
       provide: ListUserModeSessionsInteractor,

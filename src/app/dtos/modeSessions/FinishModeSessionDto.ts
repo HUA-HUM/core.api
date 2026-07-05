@@ -6,4 +6,5 @@ import {
 export class FinishModeSessionDto {
   status?: Exclude<ModeSessionStatus, 'active'>;
   endSource!: ModeSessionEndSource;
+  tagIdentifier?: string;
 }

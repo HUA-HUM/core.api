@@ -11,6 +11,16 @@ import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/R
 import { UpdateNfcTagClaimLabelInteractor } from '../../../core/interactors/nfcTags/UpdateNfcTagClaimLabelInteractor';
 import { NfcTagsService } from '../../services/nfcTags/NfcTagsService';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
+import {
+  IModeSessionsRepository,
+  MODE_SESSIONS_REPOSITORY,
+} from '../../../core/adapters/repositories/modeSessions/IModeSessionsRepository';
+import {
+  IRitualSessionsRepository,
+  RITUAL_SESSIONS_REPOSITORY,
+} from '../../../core/adapters/repositories/ritualSessions/IRitualSessionsRepository';
+import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
+import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
 
 @Module({
   imports: [JwtAuthModule],
@@ -45,6 +55,18 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
       useFactory: (nfcTagsRepository: INfcTagsRepository) =>
         new UpdateNfcTagClaimLabelInteractor(nfcTagsRepository),
       inject: [NFC_TAGS_REPOSITORY],
+    },
+    {
+      provide: GetActiveModeSessionInteractor,
+      useFactory: (modeSessionsRepository: IModeSessionsRepository) =>
+        new GetActiveModeSessionInteractor(modeSessionsRepository),
+      inject: [MODE_SESSIONS_REPOSITORY],
+    },
+    {
+      provide: GetActiveRitualSessionInteractor,
+      useFactory: (ritualSessionsRepository: IRitualSessionsRepository) =>
+        new GetActiveRitualSessionInteractor(ritualSessionsRepository),
+      inject: [RITUAL_SESSIONS_REPOSITORY],
     },
     NfcTagsService,
   ],

@@ -6,4 +6,5 @@ import {
 export class FinishRitualSessionDto {
   status?: Exclude<RitualSessionStatus, 'active'>;
   endSource!: RitualSessionEndSource;
+  tagIdentifier?: string;
 }

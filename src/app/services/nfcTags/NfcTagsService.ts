@@ -1,6 +1,8 @@
 import { createHash } from 'crypto';
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,6 +13,9 @@ import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/R
 import { NfcTagClaimNotFoundError } from '../../../core/interactors/nfcTags/NfcTagClaimNotFoundError';
 import { UpdateNfcTagClaimLabelInteractor } from '../../../core/interactors/nfcTags/UpdateNfcTagClaimLabelInteractor';
 import { NfcTagClaim } from '../../../core/entities/nfcTags/NfcTag';
+import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
+import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
+import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
 
 export interface ClaimNfcTagServiceData {
   userId: string;
@@ -31,6 +36,8 @@ export class NfcTagsService {
     private readonly verifyNfcTagInteractor: VerifyNfcTagInteractor,
     private readonly revokeNfcTagClaimInteractor: RevokeNfcTagClaimInteractor,
     private readonly updateNfcTagClaimLabelInteractor: UpdateNfcTagClaimLabelInteractor,
+    private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
+    private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
   ) {}
 
   async listByUserId(userId: string): Promise<NfcTagClaim[]> {
@@ -59,6 +66,29 @@ export class NfcTagsService {
     });
   }
 
+  async requireActiveTag(userId: string): Promise<void> {
+    this.validateRequiredText(userId, 'userId');
+    const claims = await this.listUserNfcTagClaimsInteractor.execute(userId);
+
+    if (claims.length === 0) {
+      throw new ForbiddenException(
+        apiError(ApiErrorCode.nfcTagRequired, 'nfc tag required'),
+      );
+    }
+  }
+
+  async verifyRequiredTag(data: VerifyNfcTagServiceData): Promise<NfcTagClaim> {
+    const claim = await this.verify(data);
+
+    if (!claim) {
+      throw new ForbiddenException(
+        apiError(ApiErrorCode.invalidNfcTag, 'invalid nfc tag'),
+      );
+    }
+
+    return claim;
+  }
+
   async revoke(userId: string, claimId: string): Promise<void> {
     this.validateRequiredText(userId, 'userId');
     this.validateRequiredText(claimId, 'claimId');
@@ -67,6 +97,20 @@ export class NfcTagsService {
 
     if (!targetClaim) {
       return;
+    }
+
+    const [activeModeSession, activeRitualSession] = await Promise.all([
+      this.getActiveModeSessionInteractor.execute(userId),
+      this.getActiveRitualSessionInteractor.execute(userId),
+    ]);
+
+    if (activeModeSession || activeRitualSession) {
+      throw new ConflictException(
+        apiError(
+          ApiErrorCode.nfcTagInUse,
+          'cannot revoke nfc tag while a focus session is active',
+        ),
+      );
     }
 
     try {
@@ -124,9 +168,7 @@ export class NfcTagsService {
   ): Promise<NfcTagClaim | null> {
     const claims = await this.listUserNfcTagClaimsInteractor.execute(userId);
     return (
-      claims.find((claim) => claim.id === preferredClaimId) ??
-      claims[0] ??
-      null
+      claims.find((claim) => claim.id === preferredClaimId) ?? claims[0] ?? null
     );
   }
 

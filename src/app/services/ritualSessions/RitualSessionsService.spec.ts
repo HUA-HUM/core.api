@@ -4,31 +4,54 @@ import { RitualSessionsService } from './RitualSessionsService';
 
 describe('RitualSessionsService start validation', () => {
   const ritualsService = { getById: jest.fn() };
+  const nfcTagsService = {
+    requireActiveTag: jest.fn(),
+    verifyRequiredTag: jest.fn(),
+  };
   const startInteractor = { execute: jest.fn() };
   const getActiveInteractor = { execute: jest.fn() };
   const getActiveModeInteractor = { execute: jest.fn() };
+  const getRitualInteractor = { execute: jest.fn() };
   const listInteractor = { execute: jest.fn() };
   const listByRitualInteractor = { execute: jest.fn() };
   const summaryInteractor = { execute: jest.fn() };
   const finishInteractor = { execute: jest.fn() };
   const recordInteractor = { execute: jest.fn() };
+  const idempotencyService = { execute: jest.fn() };
 
   const service = new RitualSessionsService(
     ritualsService as never,
+    nfcTagsService as never,
     startInteractor as never,
     getActiveInteractor as never,
     getActiveModeInteractor as never,
+    getRitualInteractor as never,
     listInteractor as never,
     listByRitualInteractor as never,
     summaryInteractor as never,
     finishInteractor as never,
     recordInteractor as never,
+    idempotencyService as never,
   );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    ritualsService.getById.mockResolvedValue({ id: 'ritual-id' });
+    startInteractor.execute.mockReset().mockResolvedValue(createSession());
+    getActiveInteractor.execute.mockReset().mockResolvedValue(null);
+    ritualsService.getById.mockResolvedValue({
+      id: 'ritual-id',
+      isProtected: false,
+      status: 'active',
+      appCount: 1,
+      categoryCount: 0,
+      domainCount: 0,
+    });
+    nfcTagsService.requireActiveTag.mockResolvedValue(undefined);
+    nfcTagsService.verifyRequiredTag.mockResolvedValue({ id: 'claim-id' });
     getActiveModeInteractor.execute.mockResolvedValue(null);
+    idempotencyService.execute.mockImplementation(
+      ({ execute }: { execute: () => Promise<unknown> }) => execute(),
+    );
   });
 
   it('returns the existing session when the same ritual is started twice', async () => {
@@ -78,6 +101,53 @@ describe('RitualSessionsService start validation', () => {
     startInteractor.execute.mockRejectedValue(new Error('duplicate key'));
 
     await expect(service.start(startRequest())).resolves.toEqual(activeSession);
+  });
+
+  it('requires an active NFC tag for a manual ritual start', async () => {
+    getActiveInteractor.execute.mockResolvedValue(null);
+
+    await service.start({
+      ...startRequest(),
+      startSource: 'manual',
+    });
+
+    expect(nfcTagsService.requireActiveTag).toHaveBeenCalledWith('user-id');
+  });
+
+  it('does not require an NFC tag for a scheduled ritual start', async () => {
+    getActiveInteractor.execute.mockResolvedValue(null);
+
+    await service.start(startRequest());
+
+    expect(nfcTagsService.requireActiveTag).not.toHaveBeenCalled();
+  });
+
+  it('rejects starting an archived ritual', async () => {
+    ritualsService.getById.mockResolvedValue({
+      status: 'archived',
+      appCount: 1,
+      categoryCount: 0,
+      domainCount: 0,
+    });
+
+    await expect(service.start(startRequest())).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(startInteractor.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects starting a ritual without blocked items', async () => {
+    ritualsService.getById.mockResolvedValue({
+      status: 'active',
+      appCount: 0,
+      categoryCount: 0,
+      domainCount: 0,
+    });
+
+    await expect(service.start(startRequest())).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(startInteractor.execute).not.toHaveBeenCalled();
   });
 });
 

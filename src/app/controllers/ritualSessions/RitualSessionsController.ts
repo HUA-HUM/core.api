@@ -1,6 +1,16 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -45,7 +55,9 @@ export class RitualSessionsController {
   }
 
   @Post('start')
-  @ApiOperation({ summary: 'Start a ritual session for the authenticated user' })
+  @ApiOperation({
+    summary: 'Start a ritual session for the authenticated user',
+  })
   @ApiResponse({ status: 201, type: RitualSessionResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async start(
@@ -63,7 +75,9 @@ export class RitualSessionsController {
   }
 
   @Get('active')
-  @ApiOperation({ summary: 'Get active ritual session for the authenticated user' })
+  @ApiOperation({
+    summary: 'Get active ritual session for the authenticated user',
+  })
   @ApiResponse({ status: 200, type: RitualSessionResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async active(
@@ -76,9 +90,10 @@ export class RitualSessionsController {
     return session ? RitualSessionResponseDto.fromEntity(session) : null;
   }
 
-
   @Get('summary')
-  @ApiOperation({ summary: 'Get ritual session summary for the authenticated user' })
+  @ApiOperation({
+    summary: 'Get ritual session summary for the authenticated user',
+  })
   @ApiResponse({ status: 200, type: RitualSessionSummaryResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async summary(
@@ -104,7 +119,9 @@ export class RitualSessionsController {
       ritualId,
     );
 
-    return sessions.map((session) => RitualSessionResponseDto.fromEntity(session));
+    return sessions.map((session) =>
+      RitualSessionResponseDto.fromEntity(session),
+    );
   }
 
   @Get()
@@ -115,23 +132,33 @@ export class RitualSessionsController {
     @Req() request: AuthenticatedRequest,
   ): Promise<RitualSessionResponseDto[]> {
     const sessions = await this.ritualSessionsService.list(request.authUser.id);
-    return sessions.map((session) => RitualSessionResponseDto.fromEntity(session));
+    return sessions.map((session) =>
+      RitualSessionResponseDto.fromEntity(session),
+    );
   }
 
   @Post(':id/finish')
   @ApiOperation({ summary: 'Finish or cancel a ritual session' })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description: 'Unique key used to safely retry this request',
+  })
   @ApiResponse({ status: 200, type: RitualSessionResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async finish(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() body: FinishRitualSessionDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<RitualSessionResponseDto> {
     const session = await this.ritualSessionsService.finish({
       userId: request.authUser.id,
       sessionId: id,
       status: body.status,
       endSource: body.endSource,
+      tagIdentifier: body.tagIdentifier,
+      idempotencyKey,
     });
 
     return RitualSessionResponseDto.fromEntity(session);

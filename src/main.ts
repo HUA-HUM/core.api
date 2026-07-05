@@ -9,7 +9,12 @@ async function bootstrap() {
   if (env.corsOrigins.length > 0) {
     app.enableCors({
       origin: env.corsOrigins,
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-internal-api-key'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'Idempotency-Key',
+        'x-internal-api-key',
+      ],
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     });
   }

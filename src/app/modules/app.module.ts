@@ -8,11 +8,14 @@ import { ModeSessionsModule } from './modeSessions/ModeSessionsModule';
 import { NfcTagsModule } from './nfcTags/NfcTagsModule';
 import { InternalAnalyticsModule } from './internalAnalytics/InternalAnalyticsModule';
 import { FocusMetricsModule } from './focusMetrics/FocusMetricsModule';
+import { FocusSessionsModule } from './focusSessions/FocusSessionsModule';
 import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitlistLeadsModule';
+import { IdempotencyModule } from './idempotency/IdempotencyModule';
 
 @Module({
   imports: [
     DatabaseModule,
+    IdempotencyModule,
     HealthModule,
     RitualsModule,
     RitualSessionsModule,
@@ -21,6 +24,7 @@ import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitli
     NfcTagsModule,
     InternalAnalyticsModule,
     FocusMetricsModule,
+    FocusSessionsModule,
     LandingWaitlistLeadsModule,
   ],
 })

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -21,6 +22,10 @@ import {
 import { RitualSessionSummary } from '../../../core/entities/ritualSessions/RitualSessionSummary';
 import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
 import { FocusSessionAlreadyActiveError } from '../../../core/interactors/focusSessions/FocusSessionAlreadyActiveError';
+import { GetRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetRitualSessionInteractor';
+import { NfcTagsService } from '../nfcTags/NfcTagsService';
+import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
+import { IdempotencyService } from '../idempotency/IdempotencyService';
 
 export interface StartRitualSessionServiceData {
   userId: string;
@@ -34,6 +39,8 @@ export interface FinishRitualSessionServiceData {
   sessionId: string;
   status?: Exclude<RitualSessionStatus, 'active'>;
   endSource: RitualSessionEndSource;
+  tagIdentifier?: string;
+  idempotencyKey?: string;
 }
 
 export interface RecordRitualSessionServiceData {
@@ -51,14 +58,17 @@ export interface RecordRitualSessionServiceData {
 export class RitualSessionsService {
   constructor(
     private readonly ritualsService: RitualsService,
+    private readonly nfcTagsService: NfcTagsService,
     private readonly startRitualSessionInteractor: StartRitualSessionInteractor,
     private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
     private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
+    private readonly getRitualSessionInteractor: GetRitualSessionInteractor,
     private readonly listUserRitualSessionsInteractor: ListUserRitualSessionsInteractor,
     private readonly listRitualSessionsByRitualInteractor: ListRitualSessionsByRitualInteractor,
     private readonly getRitualSessionSummaryInteractor: GetRitualSessionSummaryInteractor,
     private readonly finishRitualSessionInteractor: FinishRitualSessionInteractor,
     private readonly recordRitualSessionInteractor: RecordRitualSessionInteractor,
+    private readonly idempotencyService: IdempotencyService,
   ) {}
 
   async start(data: StartRitualSessionServiceData): Promise<RitualSession> {
@@ -66,7 +76,15 @@ export class RitualSessionsService {
     this.validateRequiredText(data.ritualId, 'ritualId');
     this.validateStartSource(data.startSource);
 
-    await this.ritualsService.getById(data.userId, data.ritualId);
+    const ritual = await this.ritualsService.getById(
+      data.userId,
+      data.ritualId,
+    );
+    this.validateRitualCanStart(ritual);
+
+    if (data.startSource === 'manual' || data.startSource === 'nfc') {
+      await this.nfcTagsService.requireActiveTag(data.userId);
+    }
 
     const activeSession = await this.getActiveRitualSessionInteractor.execute(
       data.userId,
@@ -77,7 +95,7 @@ export class RitualSessionsService {
         return activeSession;
       }
 
-      throw new ConflictException('user already has an active ritual session');
+      throw this.activeFocusSessionConflict();
     }
 
     const activeModeSession = await this.getActiveModeSessionInteractor.execute(
@@ -85,7 +103,7 @@ export class RitualSessionsService {
     );
 
     if (activeModeSession) {
-      throw new ConflictException('user already has an active focus session');
+      throw this.activeFocusSessionConflict();
     }
 
     const plannedEndAt = this.parseOptionalDate(
@@ -113,20 +131,18 @@ export class RitualSessionsService {
       }
 
       if (concurrentSession) {
-        throw new ConflictException(
-          'user already has an active ritual session',
-        );
+        throw this.activeFocusSessionConflict();
       }
 
       const concurrentModeSession =
         await this.getActiveModeSessionInteractor.execute(data.userId);
 
       if (concurrentModeSession) {
-        throw new ConflictException('user already has an active focus session');
+        throw this.activeFocusSessionConflict();
       }
 
       if (error instanceof FocusSessionAlreadyActiveError) {
-        throw new ConflictException('user already has an active focus session');
+        throw this.activeFocusSessionConflict();
       }
 
       throw error;
@@ -223,6 +239,58 @@ export class RitualSessionsService {
       throw new BadRequestException('status must be completed or cancelled');
     }
 
+    return this.idempotencyService.execute({
+      userId: data.userId,
+      key: data.idempotencyKey,
+      operation: 'finish_ritual_session',
+      request: {
+        sessionId: data.sessionId,
+        status,
+        endSource: data.endSource,
+      },
+      resourceType: 'ritual_session',
+      execute: () => this.finishOnce(data, status),
+      replay: (resourceId) =>
+        this.replayFinishedSession(data.userId, resourceId),
+      resourceId: (session) => session.id,
+    });
+  }
+
+  private async finishOnce(
+    data: FinishRitualSessionServiceData,
+    status: Exclude<RitualSessionStatus, 'active'>,
+  ): Promise<RitualSession> {
+    const activeSession = await this.getRitualSessionInteractor.execute(
+      data.sessionId,
+    );
+
+    if (
+      !activeSession ||
+      activeSession.userId !== data.userId ||
+      activeSession.status !== 'active'
+    ) {
+      throw new NotFoundException('active ritual session not found');
+    }
+
+    const ritual = await this.ritualsService.getById(
+      data.userId,
+      activeSession.ritualId,
+    );
+
+    if (data.endSource === 'nfc') {
+      await this.nfcTagsService.verifyRequiredTag({
+        userId: data.userId,
+        tagIdentifier: data.tagIdentifier ?? '',
+      });
+    } else if (data.endSource === 'manual' && ritual.isProtected) {
+      throw new ForbiddenException(
+        apiError(
+          ApiErrorCode.nfcRequiredToFinish,
+          'protected ritual requires nfc to finish',
+        ),
+      );
+    }
+
     const session = await this.finishRitualSessionInteractor.execute({
       id: data.sessionId,
       userId: data.userId,
@@ -232,6 +300,23 @@ export class RitualSessionsService {
 
     if (!session) {
       throw new NotFoundException('active ritual session not found');
+    }
+
+    return session;
+  }
+
+  private async replayFinishedSession(
+    userId: string,
+    resourceId: string,
+  ): Promise<RitualSession> {
+    const session = await this.getRitualSessionInteractor.execute(resourceId);
+    if (!session || session.userId !== userId) {
+      throw new ConflictException(
+        apiError(
+          ApiErrorCode.idempotencyKeyReused,
+          'idempotency result is no longer available',
+        ),
+      );
     }
 
     return session;
@@ -249,6 +334,37 @@ export class RitualSessionsService {
         'startSource must be manual, schedule or nfc',
       );
     }
+  }
+
+  private validateRitualCanStart(ritual: {
+    status: string;
+    appCount: number;
+    categoryCount: number;
+    domainCount: number;
+  }): void {
+    if (ritual.status !== 'active') {
+      throw new ConflictException(
+        apiError(ApiErrorCode.ritualNotActive, 'ritual is not active'),
+      );
+    }
+
+    if (ritual.appCount + ritual.categoryCount + ritual.domainCount <= 0) {
+      throw new ConflictException(
+        apiError(
+          ApiErrorCode.ritualBlockedItemsRequired,
+          'ritual has no blocked items',
+        ),
+      );
+    }
+  }
+
+  private activeFocusSessionConflict(): ConflictException {
+    return new ConflictException(
+      apiError(
+        ApiErrorCode.activeFocusSessionExists,
+        'user already has an active focus session',
+      ),
+    );
   }
 
   private validateEndSource(value: RitualSessionEndSource): void {

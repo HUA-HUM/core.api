@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   Req,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -108,18 +110,26 @@ export class ModeSessionsController {
 
   @Post(':id/finish')
   @ApiOperation({ summary: 'Finish or cancel a mode session' })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description: 'Unique key used to safely retry this request',
+  })
   @ApiResponse({ status: 200, type: ModeSessionResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   async finish(
     @Req() request: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() body: FinishModeSessionDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<ModeSessionResponseDto> {
     const session = await this.modeSessionsService.finish({
       userId: request.authUser.id,
       sessionId: id,
       status: body.status,
       endSource: body.endSource,
+      tagIdentifier: body.tagIdentifier,
+      idempotencyKey,
     });
 
     return ModeSessionResponseDto.fromEntity(session);

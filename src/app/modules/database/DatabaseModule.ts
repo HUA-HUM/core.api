@@ -10,6 +10,7 @@ import { MODE_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/mo
 import { NFC_TAGS_REPOSITORY } from '../../../core/adapters/repositories/nfcTags/INfcTagsRepository';
 import { INTERNAL_ANALYTICS_REPOSITORY } from '../../../core/adapters/repositories/internalAnalytics/IInternalAnalyticsRepository';
 import { FOCUS_METRICS_REPOSITORY } from '../../../core/adapters/repositories/focusMetrics/IFocusMetricsRepository';
+import { FOCUS_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/focusSessions/IFocusSessionsRepository';
 import { LANDING_WAITLIST_LEADS_REPOSITORY } from '../../../core/adapters/repositories/landingWaitlistLeads/ILandingWaitlistLeadsRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
@@ -20,6 +21,7 @@ import { SQLModeSessionsRepository } from '../../drivers/repositories/modeSessio
 import { SQLNfcTagsRepository } from '../../drivers/repositories/nfcTags/SQLNfcTagsRepository';
 import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/internalAnalytics/SQLInternalAnalyticsRepository';
 import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetrics/SQLFocusMetricsRepository';
+import { SQLFocusSessionsRepository } from '../../drivers/repositories/focusSessions/SQLFocusSessionsRepository';
 import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/landingWaitlistLeads/SQLLandingWaitlistLeadsRepository';
 
 @Global()
@@ -70,6 +72,10 @@ import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/la
       useClass: SQLFocusMetricsRepository,
     },
     {
+      provide: FOCUS_SESSIONS_REPOSITORY,
+      useClass: SQLFocusSessionsRepository,
+    },
+    {
       provide: LANDING_WAITLIST_LEADS_REPOSITORY,
       useClass: SQLLandingWaitlistLeadsRepository,
     },
@@ -84,6 +90,7 @@ import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/la
     NFC_TAGS_REPOSITORY,
     INTERNAL_ANALYTICS_REPOSITORY,
     FOCUS_METRICS_REPOSITORY,
+    FOCUS_SESSIONS_REPOSITORY,
     LANDING_WAITLIST_LEADS_REPOSITORY,
   ],
 })
