@@ -1,6 +1,11 @@
 export type RitualSessionStatus = 'active' | 'completed' | 'cancelled';
 export type RitualSessionStartSource = 'manual' | 'schedule' | 'nfc';
-export type RitualSessionEndSource = 'timer' | 'manual' | 'nfc' | 'schedule';
+export type RitualSessionEndSource =
+  | 'timer'
+  | 'manual'
+  | 'nfc'
+  | 'schedule'
+  | 'emergency';
 
 export interface RitualSession {
   id: string;

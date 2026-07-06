@@ -17,6 +17,7 @@ import { NfcTagAlreadyClaimedError } from '../../../core/interactors/nfcTags/Nfc
 import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
 import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
 import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
+import { NfcTagLostError } from '../../../core/interactors/nfcTags/NfcTagLostError';
 
 export interface ClaimNfcTagServiceData {
   userId: string;
@@ -62,6 +63,15 @@ export class NfcTagsService {
           apiError(
             ApiErrorCode.nfcTagAlreadyClaimed,
             'nfc tag already belongs to another user',
+          ),
+        );
+      }
+
+      if (error instanceof NfcTagLostError) {
+        throw new ConflictException(
+          apiError(
+            ApiErrorCode.nfcTagLost,
+            'nfc tag was marked as lost and cannot be claimed',
           ),
         );
       }

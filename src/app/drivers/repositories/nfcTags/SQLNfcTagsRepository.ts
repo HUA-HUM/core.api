@@ -9,6 +9,7 @@ import {
 } from '../../../../core/entities/nfcTags/NfcTag';
 import { INfcTagsRepository } from '../../../../core/adapters/repositories/nfcTags/INfcTagsRepository';
 import { NfcTagAlreadyClaimedError } from '../../../../core/interactors/nfcTags/NfcTagAlreadyClaimedError';
+import { NfcTagLostError } from '../../../../core/interactors/nfcTags/NfcTagLostError';
 
 interface NfcTagClaimRow {
   id: string;
@@ -53,9 +54,15 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
           from tag_lock
           on conflict (tag_hash)
           do update set
-            status = 'active',
+            status = case
+              when nfc_tags.status = 'lost' then 'lost'
+              else 'active'
+            end,
             updated_at = now()
-          returning id
+          returning id, status
+        ),
+        lost_tag as (
+          select id from tag where status = 'lost'
         ),
         existing_other_owner as (
           select claims.id
@@ -74,6 +81,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
             and status = 'active'
             and tag_id <> (select id from tag)
             and not exists (select 1 from existing_other_owner)
+            and not exists (select 1 from lost_tag)
           returning id
         ),
         claim as (
@@ -95,6 +103,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
           from tag
           left join revoked_previous_claims on true
           where not exists (select 1 from existing_other_owner)
+            and not exists (select 1 from lost_tag)
           group by tag.id
           on conflict (tag_id, user_id)
           do update set
@@ -119,6 +128,14 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     );
 
     if (!rows[0]) {
+      const tagRows = await this.queryRows<{ status: string }>(
+        'select status from nfc_tags where tag_hash = $1 limit 1',
+        [data.tagHash],
+      );
+      if (tagRows[0]?.status === 'lost') {
+        throw new NfcTagLostError();
+      }
+
       throw new NfcTagAlreadyClaimedError();
     }
 

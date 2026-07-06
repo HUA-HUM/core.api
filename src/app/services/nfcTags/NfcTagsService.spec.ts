@@ -1,5 +1,6 @@
 import { ConflictException } from '@nestjs/common';
 import { NfcTagAlreadyClaimedError } from '../../../core/interactors/nfcTags/NfcTagAlreadyClaimedError';
+import { NfcTagLostError } from '../../../core/interactors/nfcTags/NfcTagLostError';
 import { NfcTagsService } from './NfcTagsService';
 
 describe('NfcTagsService', () => {
@@ -44,6 +45,26 @@ describe('NfcTagsService', () => {
     expect((thrown as ConflictException).getResponse()).toEqual({
       code: 'NFC_TAG_ALREADY_CLAIMED',
       message: 'nfc tag already belongs to another user',
+    });
+  });
+
+  it('returns a conflict when the tag was marked as lost', async () => {
+    claimNfcTagInteractor.execute.mockRejectedValue(new NfcTagLostError());
+
+    let thrown: unknown;
+    try {
+      await service.claim({
+        userId: 'user-id',
+        tagIdentifier: '04AABBCCDDEE',
+      });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(ConflictException);
+    expect((thrown as ConflictException).getResponse()).toEqual({
+      code: 'NFC_TAG_LOST',
+      message: 'nfc tag was marked as lost and cannot be claimed',
     });
   });
 });

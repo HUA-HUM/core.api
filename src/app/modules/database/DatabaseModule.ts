@@ -12,6 +12,7 @@ import { INTERNAL_ANALYTICS_REPOSITORY } from '../../../core/adapters/repositori
 import { FOCUS_METRICS_REPOSITORY } from '../../../core/adapters/repositories/focusMetrics/IFocusMetricsRepository';
 import { FOCUS_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/focusSessions/IFocusSessionsRepository';
 import { LANDING_WAITLIST_LEADS_REPOSITORY } from '../../../core/adapters/repositories/landingWaitlistLeads/ILandingWaitlistLeadsRepository';
+import { EMERGENCY_UNLOCKS_REPOSITORY } from '../../../core/adapters/repositories/emergencyUnlocks/IEmergencyUnlocksRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
 import { SQLRitualSessionsRepository } from '../../drivers/repositories/ritualSessions/SQLRitualSessionsRepository';
@@ -23,6 +24,7 @@ import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/inter
 import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetrics/SQLFocusMetricsRepository';
 import { SQLFocusSessionsRepository } from '../../drivers/repositories/focusSessions/SQLFocusSessionsRepository';
 import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/landingWaitlistLeads/SQLLandingWaitlistLeadsRepository';
+import { SQLEmergencyUnlocksRepository } from '../../drivers/repositories/emergencyUnlocks/SQLEmergencyUnlocksRepository';
 
 @Global()
 @Module({
@@ -79,6 +81,10 @@ import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/la
       provide: LANDING_WAITLIST_LEADS_REPOSITORY,
       useClass: SQLLandingWaitlistLeadsRepository,
     },
+    {
+      provide: EMERGENCY_UNLOCKS_REPOSITORY,
+      useClass: SQLEmergencyUnlocksRepository,
+    },
   ],
   exports: [
     RITUALS_REPOSITORY,
@@ -92,6 +98,7 @@ import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/la
     FOCUS_METRICS_REPOSITORY,
     FOCUS_SESSIONS_REPOSITORY,
     LANDING_WAITLIST_LEADS_REPOSITORY,
+    EMERGENCY_UNLOCKS_REPOSITORY,
   ],
 })
 export class DatabaseModule {}
