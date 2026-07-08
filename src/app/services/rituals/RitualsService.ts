@@ -83,6 +83,7 @@ export class RitualsService {
     this.validateCreateData(data);
 
     const isProtected = data.isProtected ?? false;
+    const nfcUnlockEnabled = data.nfcUnlockEnabled ?? false;
     const createRitualData: CreateRitualInteractorData = {
       userId: data.userId,
       title: data.title.trim(),
@@ -97,7 +98,7 @@ export class RitualsService {
       domainCount: data.domainCount,
       selectionDigest: this.normalizeNullableText(data.selectionDigest),
       isProtected,
-      nfcUnlockEnabled: isProtected ? (data.nfcUnlockEnabled ?? true) : false,
+      nfcUnlockEnabled,
       password: isProtected ? data.password?.trim() : null,
     };
 
