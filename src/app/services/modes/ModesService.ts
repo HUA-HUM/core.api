@@ -44,7 +44,7 @@ export interface UpdateModeServiceData {
 @Injectable()
 export class ModesService {
   private readonly defaultModes = [
-    { templateKey: 'gym', title: 'Gym', icon: 'dumbbell.fill' },
+    { templateKey: 'gym', title: 'Gimnasio', icon: 'dumbbell.fill' },
     { templateKey: 'meeting', title: 'Reunión', icon: 'person.2.fill' },
     { templateKey: 'reading', title: 'Lectura', icon: 'book.closed.fill' },
     { templateKey: 'work', title: 'Trabajar', icon: 'laptopcomputer' },
@@ -106,6 +106,37 @@ export class ModesService {
       isProtected,
       nfcUnlockEnabled: isProtected ? (data.nfcUnlockEnabled ?? true) : false,
       passwordHash,
+    });
+
+    if (!updatedMode) {
+      throw new NotFoundException('mode not found');
+    }
+
+    return updatedMode;
+  }
+
+  async rename(userId: string, id: string, title: string): Promise<Mode> {
+    const mode = await this.getById(userId, id);
+    const cleanTitle = title?.trim();
+
+    if (!cleanTitle) {
+      throw new BadRequestException('title is required');
+    }
+
+    if (cleanTitle.length > 40) {
+      throw new BadRequestException('title must contain at most 40 characters');
+    }
+
+    const updatedMode = await this.updateModeInteractor.execute(id, {
+      title: cleanTitle,
+      icon: mode.icon,
+      appCount: mode.appCount,
+      categoryCount: mode.categoryCount,
+      domainCount: mode.domainCount,
+      selectionDigest: mode.selectionDigest,
+      isProtected: mode.isProtected,
+      nfcUnlockEnabled: mode.nfcUnlockEnabled,
+      passwordHash: mode.passwordHash,
     });
 
     if (!updatedMode) {

@@ -23,6 +23,7 @@ import type { AuthenticatedRequest } from '../../services/jwtAuth/guards/JwtAuth
 import { ModesService } from '../../services/modes/ModesService';
 import { ModeResponseDto } from '../../dtos/modes/ModeResponseDto';
 import { UpdateModeDto } from '../../dtos/modes/UpdateModeDto';
+import { RenameModeDto } from '../../dtos/modes/RenameModeDto';
 import { ReplaceModeBlockedItemsDto } from '../../dtos/modeBlockedItems/ReplaceModeBlockedItemsDto';
 import { ModeBlockedItemResponseDto } from '../../dtos/modeBlockedItems/ModeBlockedItemResponseDto';
 import type { ModeBlockedItemPlatform } from '../../../core/entities/modeBlockedItems/ModeBlockedItem';
@@ -88,6 +89,35 @@ export class ModesController {
       },
       resourceType: 'mode',
       execute: () => this.modesService.update(request.authUser.id, id, body),
+      replay: (resourceId) =>
+        this.modesService.getById(request.authUser.id, resourceId),
+      resourceId: (result) => result.id,
+    });
+    return ModeResponseDto.fromEntity(mode);
+  }
+
+  @Patch(':id/name')
+  @ApiOperation({ summary: 'Rename a mode' })
+  @ApiHeader({ name: 'Idempotency-Key', required: false })
+  @ApiResponse({ status: 200, type: ModeResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async rename(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: RenameModeDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ): Promise<ModeResponseDto> {
+    const mode = await this.idempotencyService.execute({
+      userId: request.authUser.id,
+      key: idempotencyKey,
+      operation: 'rename_mode',
+      request: {
+        modeId: id,
+        title: body.title,
+      },
+      resourceType: 'mode',
+      execute: () =>
+        this.modesService.rename(request.authUser.id, id, body.title),
       replay: (resourceId) =>
         this.modesService.getById(request.authUser.id, resourceId),
       resourceId: (result) => result.id,

@@ -1,7 +1,7 @@
 import { IEmergencyUnlocksRepository } from '../../adapters/repositories/emergencyUnlocks/IEmergencyUnlocksRepository';
 
 export class GetEmergencyUnlockStatusInteractor {
-  static readonly cooldownDays = 60;
+  static readonly cooldownDays = 30;
 
   constructor(private readonly repository: IEmergencyUnlocksRepository) {}
 

@@ -20,7 +20,7 @@ describe('FocusSessionsService emergency unlock', () => {
   it('returns the account cooldown status', async () => {
     const status = {
       available: true,
-      cooldownDays: 60,
+      cooldownDays: 30,
       lastUsedAt: null,
       nextAvailableAt: null,
     };
