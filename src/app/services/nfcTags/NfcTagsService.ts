@@ -12,6 +12,7 @@ import { VerifyNfcTagInteractor } from '../../../core/interactors/nfcTags/Verify
 import { RevokeNfcTagClaimInteractor } from '../../../core/interactors/nfcTags/RevokeNfcTagClaimInteractor';
 import { NfcTagClaimNotFoundError } from '../../../core/interactors/nfcTags/NfcTagClaimNotFoundError';
 import { UpdateNfcTagClaimLabelInteractor } from '../../../core/interactors/nfcTags/UpdateNfcTagClaimLabelInteractor';
+import { InviteNfcTagMemberInteractor } from '../../../core/interactors/nfcTags/InviteNfcTagMemberInteractor';
 import { NfcTagClaim } from '../../../core/entities/nfcTags/NfcTag';
 import { NfcTagAlreadyClaimedError } from '../../../core/interactors/nfcTags/NfcTagAlreadyClaimedError';
 import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
@@ -30,6 +31,12 @@ export interface VerifyNfcTagServiceData {
   tagIdentifier: string;
 }
 
+export interface InviteNfcTagMemberServiceData {
+  ownerUserId: string;
+  claimId: string;
+  email: string;
+}
+
 @Injectable()
 export class NfcTagsService {
   constructor(
@@ -38,6 +45,7 @@ export class NfcTagsService {
     private readonly verifyNfcTagInteractor: VerifyNfcTagInteractor,
     private readonly revokeNfcTagClaimInteractor: RevokeNfcTagClaimInteractor,
     private readonly updateNfcTagClaimLabelInteractor: UpdateNfcTagClaimLabelInteractor,
+    private readonly inviteNfcTagMemberInteractor: InviteNfcTagMemberInteractor,
     private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
     private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
   ) {}
@@ -49,6 +57,16 @@ export class NfcTagsService {
 
   async claim(data: ClaimNfcTagServiceData): Promise<NfcTagClaim> {
     this.validateRequiredText(data.userId, 'userId');
+    const currentClaims = await this.listUserNfcTagClaimsInteractor.execute(data.userId);
+    if (currentClaims.some((claim) => claim.role === 'member')) {
+      throw new ConflictException(
+        apiError(
+          ApiErrorCode.nfcTagParentLinkExists,
+          'user already depends on a parent nfc tag',
+        ),
+      );
+    }
+
     const tagHash = this.hashTagIdentifier(data.tagIdentifier);
 
     try {
@@ -148,6 +166,43 @@ export class NfcTagsService {
     }
   }
 
+  async inviteMember(data: InviteNfcTagMemberServiceData): Promise<NfcTagClaim> {
+    this.validateRequiredText(data.ownerUserId, 'ownerUserId');
+    this.validateRequiredText(data.claimId, 'claimId');
+    const email = this.normalizeEmail(data.email);
+
+    const ownerClaim = await this.findClaimForUser(data.ownerUserId, data.claimId);
+    if (!ownerClaim) {
+      throw new NotFoundException('NFC tag claim not found');
+    }
+
+    if (ownerClaim.role !== 'owner') {
+      throw new ForbiddenException(
+        apiError(
+          ApiErrorCode.nfcTagOwnerRequired,
+          'only the nfc tag owner can invite members',
+        ),
+      );
+    }
+
+    const memberClaim = await this.inviteNfcTagMemberInteractor.execute({
+      ownerUserId: data.ownerUserId,
+      claimId: ownerClaim.id,
+      email,
+    });
+
+    if (!memberClaim) {
+      throw new NotFoundException(
+        apiError(
+          ApiErrorCode.nfcTagInviteeNotFound,
+          'user not found or already linked to another nfc tag',
+        ),
+      );
+    }
+
+    return memberClaim;
+  }
+
   async updateLabel(
     userId: string,
     claimId: string,
@@ -219,5 +274,15 @@ export class NfcTagsService {
   private normalizeNullableText(value?: string | null): string | null {
     const normalized = value?.trim();
     return normalized ? normalized : null;
+  }
+
+  private normalizeEmail(value: string): string {
+    const normalized = value?.trim().toLowerCase();
+
+    if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      throw new BadRequestException('email must be valid');
+    }
+
+    return normalized;
   }
 }
