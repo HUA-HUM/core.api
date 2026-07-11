@@ -8,7 +8,7 @@ describe('JwtAuthGuard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    verifier.verify.mockReturnValue({ id: 'user-id' });
+    verifier.verify.mockReturnValue({ id: 'user-id', sessionId: 'session-id' });
   });
 
   it('accepts a token only while its user remains active', async () => {
@@ -19,9 +19,13 @@ describe('JwtAuthGuard', () => {
 
     await expect(guard.canActivate(contextFor(request))).resolves.toBe(true);
     expect(request).toHaveProperty('authUser.id', 'user-id');
+    expect(entityManager.query).toHaveBeenCalledWith(
+      expect.stringContaining('refresh_sessions'),
+      ['user-id', 'active', 'session-id'],
+    );
   });
 
-  it('rejects a valid token after its account was deleted', async () => {
+  it('rejects a valid token after its session was revoked or account was deleted', async () => {
     entityManager.query.mockResolvedValue([]);
 
     await expect(

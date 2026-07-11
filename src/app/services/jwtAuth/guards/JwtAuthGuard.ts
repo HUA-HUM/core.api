@@ -30,12 +30,22 @@ export class JwtAuthGuard implements CanActivate {
     const accessToken = this.getBearerToken(request);
     const authUser = this.jwtAccessTokenVerifier.verify(accessToken);
     const rows = (await this.entityManager.query(
-      'select id from users where id = $1 and status = $2 limit 1',
-      [authUser.id, 'active'],
+      `
+        select u.id
+        from users u
+        join refresh_sessions rs on rs.user_id = u.id
+        where u.id = $1
+          and u.status = $2
+          and rs.id = $3
+          and rs.revoked_at is null
+          and rs.expires_at > now()
+        limit 1
+      `,
+      [authUser.id, 'active', authUser.sessionId],
     )) as Array<{ id: string }>;
 
     if (!rows[0]) {
-      throw new UnauthorizedException('user account is no longer active');
+      throw new UnauthorizedException('session was revoked or user account is no longer active');
     }
 
     request.authUser = authUser;

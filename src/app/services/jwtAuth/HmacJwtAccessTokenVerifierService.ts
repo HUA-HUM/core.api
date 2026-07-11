@@ -11,6 +11,7 @@ interface JwtHeader {
 
 interface AccessTokenPayload {
   sub?: string;
+  sessionId?: string;
   email?: string | null;
   status?: string | null;
   exp?: number;
@@ -55,12 +56,17 @@ export class HmacJwtAccessTokenVerifierService
       throw new UnauthorizedException('access token subject is missing');
     }
 
+    if (!payload.sessionId) {
+      throw new UnauthorizedException('access token session is missing');
+    }
+
     if (payload.exp && payload.exp * 1000 <= Date.now()) {
       throw new UnauthorizedException('access token expired');
     }
 
     return {
       id: payload.sub,
+      sessionId: payload.sessionId,
       email: payload.email,
       status: payload.status,
     };
