@@ -1,6 +1,5 @@
 import {
   ClaimNfcTagData,
-  InviteNfcTagMemberData,
   NfcTagClaim,
   VerifyNfcTagData,
 } from '../../../entities/nfcTags/NfcTag';
@@ -9,7 +8,6 @@ export const NFC_TAGS_REPOSITORY = Symbol('NFC_TAGS_REPOSITORY');
 
 export interface INfcTagsRepository {
   claim(data: ClaimNfcTagData): Promise<NfcTagClaim>;
-  inviteMember(data: InviteNfcTagMemberData): Promise<NfcTagClaim | null>;
   findClaimsByUserId(userId: string): Promise<NfcTagClaim[]>;
   findActiveClaimByTagHash(tagHash: string): Promise<NfcTagClaim | null>;
   findActiveClaim(data: VerifyNfcTagData): Promise<NfcTagClaim | null>;

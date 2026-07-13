@@ -9,7 +9,6 @@ describe('NfcTagsService', () => {
   const verifyNfcTagInteractor = { execute: jest.fn() };
   const revokeNfcTagClaimInteractor = { execute: jest.fn() };
   const updateNfcTagClaimLabelInteractor = { execute: jest.fn() };
-  const inviteNfcTagMemberInteractor = { execute: jest.fn() };
   const getActiveModeSessionInteractor = { execute: jest.fn() };
   const getActiveRitualSessionInteractor = { execute: jest.fn() };
 
@@ -19,7 +18,6 @@ describe('NfcTagsService', () => {
     verifyNfcTagInteractor as never,
     revokeNfcTagClaimInteractor as never,
     updateNfcTagClaimLabelInteractor as never,
-    inviteNfcTagMemberInteractor as never,
     getActiveModeSessionInteractor as never,
     getActiveRitualSessionInteractor as never,
   );

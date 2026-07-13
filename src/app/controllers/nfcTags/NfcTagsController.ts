@@ -26,7 +26,6 @@ import { VerifyNfcTagDto } from '../../dtos/nfcTags/VerifyNfcTagDto';
 import { VerifyNfcTagResponseDto } from '../../dtos/nfcTags/VerifyNfcTagResponseDto';
 import { NfcTagsService } from '../../services/nfcTags/NfcTagsService';
 import { UpdateNfcTagClaimDto } from '../../dtos/nfcTags/UpdateNfcTagClaimDto';
-import { InviteNfcTagMemberDto } from '../../dtos/nfcTags/InviteNfcTagMemberDto';
 
 @ApiTags('nfc-tags')
 @ApiBearerAuth()
@@ -86,28 +85,6 @@ export class NfcTagsController {
       valid: Boolean(claim),
       claim: claim ? NfcTagClaimResponseDto.fromEntity(claim) : null,
     };
-  }
-
-  @Post(':claimId/members')
-  @ApiOperation({
-    summary: 'Link another user to an NFC tag owned by the authenticated user',
-  })
-  @ApiResponse({ status: 201, type: NfcTagClaimResponseDto })
-  @ApiResponse({ status: 403, description: 'Authenticated user is not the tag owner' })
-  @ApiResponse({ status: 404, description: 'Invitee user or NFC tag claim not found' })
-  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
-  async inviteMember(
-    @Req() request: AuthenticatedRequest,
-    @Param('claimId') claimId: string,
-    @Body() body: InviteNfcTagMemberDto,
-  ): Promise<NfcTagClaimResponseDto> {
-    const claim = await this.nfcTagsService.inviteMember({
-      ownerUserId: request.authUser.id,
-      claimId,
-      email: body.email,
-    });
-
-    return NfcTagClaimResponseDto.fromEntity(claim);
   }
 
   @Patch(':claimId')

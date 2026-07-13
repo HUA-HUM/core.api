@@ -3,9 +3,7 @@ import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import {
   ClaimNfcTagData,
-  InviteNfcTagMemberData,
   NfcTagClaim,
-  NfcTagClaimRole,
   NfcTagStatus,
   VerifyNfcTagData,
 } from '../../../../core/entities/nfcTags/NfcTag';
@@ -23,17 +21,6 @@ interface NfcTagClaimRow {
   user_id?: string;
   label: string | null;
   status: NfcTagStatus;
-  role?: NfcTagClaimRole;
-  relationship?: NfcTagClaimRole;
-  ownerUserId?: string | null;
-  owneruserid?: string | null;
-  owner_user_id?: string | null;
-  ownerEmail?: string | null;
-  owneremail?: string | null;
-  owner_email?: string | null;
-  invitedEmail?: string | null;
-  invitedemail?: string | null;
-  invited_email?: string | null;
   claimedAt?: Date | string;
   claimedat?: Date | string;
   claimed_at?: Date;
@@ -152,84 +139,12 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     return claim;
   }
 
-  async inviteMember(data: InviteNfcTagMemberData): Promise<NfcTagClaim | null> {
-    const rows = await this.queryRows<{ id: string }>(
-      `
-        with owner_claim as (
-          select claims.*
-          from nfc_tag_claims claims
-          inner join nfc_tags tags on tags.id = claims.tag_id
-          where claims.id = $2
-            and claims.user_id = $1
-            and claims.status = 'active'
-            and tags.status = 'active'
-            and claims.id = (
-              select owner_claims.id
-              from nfc_tag_claims owner_claims
-              where owner_claims.tag_id = claims.tag_id
-                and owner_claims.status = 'active'
-              order by owner_claims.claimed_at asc, owner_claims.created_at asc
-              limit 1
-            )
-          limit 1
-        ),
-        invitee as (
-          select id, email
-          from users
-          where lower(email) = lower($3)
-            and status = 'active'
-          limit 1
-        ),
-        active_other_claim as (
-          select claims.id
-          from nfc_tag_claims claims
-          where claims.user_id = (select id from invitee)
-            and claims.status = 'active'
-            and claims.tag_id <> (select tag_id from owner_claim)
-          limit 1
-        ),
-        member_claim as (
-          insert into nfc_tag_claims (
-            tag_id,
-            user_id,
-            label,
-            status,
-            claimed_at,
-            last_seen_at
-          )
-          select
-            owner_claim.tag_id,
-            invitee.id,
-            owner_claim.label,
-            'active',
-            now(),
-            now()
-          from owner_claim
-          cross join invitee
-          where invitee.id <> owner_claim.user_id
-            and not exists (select 1 from active_other_claim)
-          on conflict (tag_id, user_id)
-          do update set
-            status = 'active',
-            last_seen_at = now(),
-            updated_at = now()
-          returning id
-        )
-        select id from member_claim
-      `,
-      [data.ownerUserId, data.claimId, data.email],
-    );
-
-    return rows[0] ? this.findClaimById(rows[0].id) : null;
-  }
-
   async findClaimsByUserId(userId: string): Promise<NfcTagClaim[]> {
     const rows = await this.queryRows<NfcTagClaimRow>(
       `
         ${this.selectClaims()}
         from nfc_tag_claims claims
         inner join nfc_tags tags on tags.id = claims.tag_id
-        ${this.joinOwnerClaim()}
         where claims.user_id = $1
           and claims.status = 'active'
           and tags.status = 'active'
@@ -247,7 +162,6 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
         ${this.selectClaims()}
         from nfc_tag_claims claims
         inner join nfc_tags tags on tags.id = claims.tag_id
-        ${this.joinOwnerClaim()}
         where tags.tag_hash = $1
           and claims.status = 'active'
           and tags.status = 'active'
@@ -266,7 +180,6 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
         ${this.selectClaims()}
         from nfc_tag_claims claims
         inner join nfc_tags tags on tags.id = claims.tag_id
-        ${this.joinOwnerClaim()}
         where claims.user_id = $1
           and tags.tag_hash = $2
           and claims.status = 'active'
@@ -347,7 +260,6 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
         ${this.selectClaims()}
         from nfc_tag_claims claims
         inner join nfc_tags tags on tags.id = claims.tag_id
-        ${this.joinOwnerClaim()}
         where claims.id = $1
         limit 1
       `,
@@ -365,17 +277,6 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
           claims.user_id as "userId",
           claims.label,
           claims.status,
-          case
-            when claims.user_id = owner_claim.user_id then 'owner'
-            else 'member'
-          end as "role",
-          case
-            when claims.user_id = owner_claim.user_id then 'owner'
-            else 'member'
-          end as "relationship",
-          owner_claim.user_id as "ownerUserId",
-          owner_claim.email as "ownerEmail",
-          user_account.email as "invitedEmail",
           claims.claimed_at as "claimedAt",
           claims.last_seen_at as "lastSeenAt",
           claims.created_at as "createdAt",
@@ -383,38 +284,13 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
     `;
   }
 
-  private joinOwnerClaim(): string {
-    return `
-        left join users user_account on user_account.id = claims.user_id
-        left join lateral (
-          select
-            owner_claims.user_id,
-            owner_account.email
-          from nfc_tag_claims owner_claims
-          left join users owner_account on owner_account.id = owner_claims.user_id
-          where owner_claims.tag_id = claims.tag_id
-            and owner_claims.status = 'active'
-          order by owner_claims.claimed_at asc, owner_claims.created_at asc
-          limit 1
-        ) owner_claim on true
-    `;
-  }
-
   private mapRowToClaim(row: NfcTagClaimRow): NfcTagClaim {
-    const role = row.role ?? 'owner';
     return {
       id: row.id,
       tagId: row.tagId ?? row.tagid ?? row.tag_id ?? '',
       userId: row.userId ?? row.userid ?? row.user_id ?? '',
       label: row.label,
       status: row.status,
-      role,
-      relationship: row.relationship ?? role,
-      ownerUserId:
-        row.ownerUserId ?? row.owneruserid ?? row.owner_user_id ?? null,
-      ownerEmail: row.ownerEmail ?? row.owneremail ?? row.owner_email ?? null,
-      invitedEmail:
-        row.invitedEmail ?? row.invitedemail ?? row.invited_email ?? null,
       claimedAt: this.toDate(
         row.claimedAt ?? row.claimedat ?? row.claimed_at,
         'claimedAt',

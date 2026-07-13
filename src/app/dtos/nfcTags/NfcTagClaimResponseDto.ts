@@ -1,6 +1,5 @@
 import {
   NfcTagClaim,
-  NfcTagClaimRole,
   NfcTagStatus,
 } from '../../../core/entities/nfcTags/NfcTag';
 import {
@@ -14,11 +13,6 @@ export class NfcTagClaimResponseDto {
   userId!: string;
   label!: string | null;
   status!: NfcTagStatus;
-  role!: NfcTagClaimRole;
-  relationship!: NfcTagClaimRole;
-  ownerUserId!: string | null;
-  ownerEmail!: string | null;
-  invitedEmail!: string | null;
   claimedAt!: string;
   lastSeenAt!: string | null;
   createdAt!: string;
@@ -31,11 +25,6 @@ export class NfcTagClaimResponseDto {
       userId: claim.userId,
       label: claim.label,
       status: claim.status,
-      role: claim.role,
-      relationship: claim.relationship,
-      ownerUserId: claim.ownerUserId,
-      ownerEmail: claim.ownerEmail,
-      invitedEmail: claim.invitedEmail,
       claimedAt: requiredDateISOString(
         claim.claimedAt,
         'claimedAt',
