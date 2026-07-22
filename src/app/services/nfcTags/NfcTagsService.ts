@@ -191,9 +191,7 @@ export class NfcTagsService {
     preferredClaimId: string,
   ): Promise<NfcTagClaim | null> {
     const claims = await this.listUserNfcTagClaimsInteractor.execute(userId);
-    return (
-      claims.find((claim) => claim.id === preferredClaimId) ?? claims[0] ?? null
-    );
+    return claims.find((claim) => claim.id === preferredClaimId) ?? null;
   }
 
   private hashTagIdentifier(tagIdentifier: string): string {

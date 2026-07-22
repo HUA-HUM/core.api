@@ -110,6 +110,7 @@ export class SQLNfcTagsRepository implements INfcTagsRepository {
           do update set
             label = excluded.label,
             status = 'active',
+            claimed_at = now(),
             last_seen_at = now(),
             updated_at = now()
           returning id
