@@ -13,6 +13,7 @@ import { FOCUS_METRICS_REPOSITORY } from '../../../core/adapters/repositories/fo
 import { FOCUS_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/focusSessions/IFocusSessionsRepository';
 import { LANDING_WAITLIST_LEADS_REPOSITORY } from '../../../core/adapters/repositories/landingWaitlistLeads/ILandingWaitlistLeadsRepository';
 import { EMERGENCY_UNLOCKS_REPOSITORY } from '../../../core/adapters/repositories/emergencyUnlocks/IEmergencyUnlocksRepository';
+import { LEGAL_DOCUMENTS_REPOSITORY } from '../../../core/adapters/repositories/legal/ILegalDocumentsRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
 import { SQLRitualSessionsRepository } from '../../drivers/repositories/ritualSessions/SQLRitualSessionsRepository';
@@ -25,6 +26,7 @@ import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetri
 import { SQLFocusSessionsRepository } from '../../drivers/repositories/focusSessions/SQLFocusSessionsRepository';
 import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/landingWaitlistLeads/SQLLandingWaitlistLeadsRepository';
 import { SQLEmergencyUnlocksRepository } from '../../drivers/repositories/emergencyUnlocks/SQLEmergencyUnlocksRepository';
+import { SQLLegalDocumentsRepository } from '../../drivers/repositories/legal/SQLLegalDocumentsRepository';
 
 @Global()
 @Module({
@@ -85,6 +87,10 @@ import { SQLEmergencyUnlocksRepository } from '../../drivers/repositories/emerge
       provide: EMERGENCY_UNLOCKS_REPOSITORY,
       useClass: SQLEmergencyUnlocksRepository,
     },
+    {
+      provide: LEGAL_DOCUMENTS_REPOSITORY,
+      useClass: SQLLegalDocumentsRepository,
+    },
   ],
   exports: [
     RITUALS_REPOSITORY,
@@ -99,6 +105,7 @@ import { SQLEmergencyUnlocksRepository } from '../../drivers/repositories/emerge
     FOCUS_SESSIONS_REPOSITORY,
     LANDING_WAITLIST_LEADS_REPOSITORY,
     EMERGENCY_UNLOCKS_REPOSITORY,
+    LEGAL_DOCUMENTS_REPOSITORY,
   ],
 })
 export class DatabaseModule {}

@@ -11,6 +11,7 @@ import { FocusMetricsModule } from './focusMetrics/FocusMetricsModule';
 import { FocusSessionsModule } from './focusSessions/FocusSessionsModule';
 import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitlistLeadsModule';
 import { IdempotencyModule } from './idempotency/IdempotencyModule';
+import { LegalDocumentsModule } from './legal/LegalDocumentsModule';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { IdempotencyModule } from './idempotency/IdempotencyModule';
     FocusMetricsModule,
     FocusSessionsModule,
     LandingWaitlistLeadsModule,
+    LegalDocumentsModule,
   ],
 })
 export class AppModule {}
