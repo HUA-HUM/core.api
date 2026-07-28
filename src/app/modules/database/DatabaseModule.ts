@@ -14,6 +14,7 @@ import { FOCUS_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/f
 import { LANDING_WAITLIST_LEADS_REPOSITORY } from '../../../core/adapters/repositories/landingWaitlistLeads/ILandingWaitlistLeadsRepository';
 import { EMERGENCY_UNLOCKS_REPOSITORY } from '../../../core/adapters/repositories/emergencyUnlocks/IEmergencyUnlocksRepository';
 import { LEGAL_DOCUMENTS_REPOSITORY } from '../../../core/adapters/repositories/legal/ILegalDocumentsRepository';
+import { APP_UPDATES_REPOSITORY } from '../../../core/adapters/repositories/appUpdates/IAppUpdatesRepository';
 import { SQLRitualsRepository } from '../../drivers/repositories/rituals/SQLRitualsRepository';
 import { SQLRitualBlockedItemsRepository } from '../../drivers/repositories/ritualBlockedItems/SQLRitualBlockedItemsRepository';
 import { SQLRitualSessionsRepository } from '../../drivers/repositories/ritualSessions/SQLRitualSessionsRepository';
@@ -27,6 +28,7 @@ import { SQLFocusSessionsRepository } from '../../drivers/repositories/focusSess
 import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/landingWaitlistLeads/SQLLandingWaitlistLeadsRepository';
 import { SQLEmergencyUnlocksRepository } from '../../drivers/repositories/emergencyUnlocks/SQLEmergencyUnlocksRepository';
 import { SQLLegalDocumentsRepository } from '../../drivers/repositories/legal/SQLLegalDocumentsRepository';
+import { SQLAppUpdatesRepository } from '../../drivers/repositories/appUpdates/SQLAppUpdatesRepository';
 
 @Global()
 @Module({
@@ -91,6 +93,10 @@ import { SQLLegalDocumentsRepository } from '../../drivers/repositories/legal/SQ
       provide: LEGAL_DOCUMENTS_REPOSITORY,
       useClass: SQLLegalDocumentsRepository,
     },
+    {
+      provide: APP_UPDATES_REPOSITORY,
+      useClass: SQLAppUpdatesRepository,
+    },
   ],
   exports: [
     RITUALS_REPOSITORY,
@@ -106,6 +112,7 @@ import { SQLLegalDocumentsRepository } from '../../drivers/repositories/legal/SQ
     LANDING_WAITLIST_LEADS_REPOSITORY,
     EMERGENCY_UNLOCKS_REPOSITORY,
     LEGAL_DOCUMENTS_REPOSITORY,
+    APP_UPDATES_REPOSITORY,
   ],
 })
 export class DatabaseModule {}

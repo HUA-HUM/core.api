@@ -12,6 +12,7 @@ import { FocusSessionsModule } from './focusSessions/FocusSessionsModule';
 import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitlistLeadsModule';
 import { IdempotencyModule } from './idempotency/IdempotencyModule';
 import { LegalDocumentsModule } from './legal/LegalDocumentsModule';
+import { AppUpdatesModule } from './appUpdates/AppUpdatesModule';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { LegalDocumentsModule } from './legal/LegalDocumentsModule';
     FocusSessionsModule,
     LandingWaitlistLeadsModule,
     LegalDocumentsModule,
+    AppUpdatesModule,
   ],
 })
 export class AppModule {}
