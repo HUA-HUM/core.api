@@ -13,6 +13,7 @@ import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitli
 import { IdempotencyModule } from './idempotency/IdempotencyModule';
 import { LegalDocumentsModule } from './legal/LegalDocumentsModule';
 import { AppUpdatesModule } from './appUpdates/AppUpdatesModule';
+import { SupportResetsModule } from './supportResets/SupportResetsModule';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AppUpdatesModule } from './appUpdates/AppUpdatesModule';
     LandingWaitlistLeadsModule,
     LegalDocumentsModule,
     AppUpdatesModule,
+    SupportResetsModule,
   ],
 })
 export class AppModule {}
