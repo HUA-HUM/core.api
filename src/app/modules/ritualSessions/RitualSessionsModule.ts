@@ -19,6 +19,7 @@ import {
   MODE_SESSIONS_REPOSITORY,
 } from '../../../core/adapters/repositories/modeSessions/IModeSessionsRepository';
 import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
+import { FinishModeSessionInteractor } from '../../../core/interactors/modeSessions/FinishModeSessionInteractor';
 import { GetRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetRitualSessionInteractor';
 import { NfcTagsModule } from '../nfcTags/NfcTagsModule';
 
@@ -42,6 +43,12 @@ import { NfcTagsModule } from '../nfcTags/NfcTagsModule';
       provide: GetActiveModeSessionInteractor,
       useFactory: (modeSessionsRepository: IModeSessionsRepository) =>
         new GetActiveModeSessionInteractor(modeSessionsRepository),
+      inject: [MODE_SESSIONS_REPOSITORY],
+    },
+    {
+      provide: FinishModeSessionInteractor,
+      useFactory: (modeSessionsRepository: IModeSessionsRepository) =>
+        new FinishModeSessionInteractor(modeSessionsRepository),
       inject: [MODE_SESSIONS_REPOSITORY],
     },
     {
