@@ -26,6 +26,7 @@ import { VerifyNfcTagDto } from '../../dtos/nfcTags/VerifyNfcTagDto';
 import { VerifyNfcTagResponseDto } from '../../dtos/nfcTags/VerifyNfcTagResponseDto';
 import { NfcTagsService } from '../../services/nfcTags/NfcTagsService';
 import { UpdateNfcTagClaimDto } from '../../dtos/nfcTags/UpdateNfcTagClaimDto';
+import { ReviewDemoTagResponseDto } from '../../dtos/nfcTags/ReviewDemoTagResponseDto';
 
 @ApiTags('nfc-tags')
 @ApiBearerAuth()
@@ -84,6 +85,32 @@ export class NfcTagsController {
     return {
       valid: Boolean(claim),
       claim: claim ? NfcTagClaimResponseDto.fromEntity(claim) : null,
+    };
+  }
+
+  @Post('review-demo/prepare')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Prepare the virtual NFC tag for the configured App Review account',
+  })
+  @ApiResponse({ status: 200, type: ReviewDemoTagResponseDto })
+  @ApiResponse({
+    status: 403,
+    description: 'Authenticated user is not the configured App Review account',
+  })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async prepareReviewDemo(
+    @Req() request: AuthenticatedRequest,
+  ): Promise<ReviewDemoTagResponseDto> {
+    const result = await this.nfcTagsService.prepareReviewDemo(
+      request.authUser.id,
+    );
+
+    return {
+      enabled: true,
+      tagIdentifier: result.tagIdentifier,
+      claim: NfcTagClaimResponseDto.fromEntity(result.claim),
     };
   }
 

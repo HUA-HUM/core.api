@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash, createHmac } from 'crypto';
 import {
   BadRequestException,
   ConflictException,
@@ -6,6 +6,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { EntityManager } from 'typeorm';
 import { ClaimNfcTagInteractor } from '../../../core/interactors/nfcTags/ClaimNfcTagInteractor';
 import { ListUserNfcTagClaimsInteractor } from '../../../core/interactors/nfcTags/ListUserNfcTagClaimsInteractor';
 import { VerifyNfcTagInteractor } from '../../../core/interactors/nfcTags/VerifyNfcTagInteractor';
@@ -18,6 +20,7 @@ import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSe
 import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
 import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
 import { NfcTagLostError } from '../../../core/interactors/nfcTags/NfcTagLostError';
+import { env } from '../../../config/env';
 
 export interface ClaimNfcTagServiceData {
   userId: string;
@@ -40,7 +43,53 @@ export class NfcTagsService {
     private readonly updateNfcTagClaimLabelInteractor: UpdateNfcTagClaimLabelInteractor,
     private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
     private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager,
   ) {}
+
+  async prepareReviewDemo(
+    userId: string,
+  ): Promise<{ tagIdentifier: string; claim: NfcTagClaim }> {
+    this.validateRequiredText(userId, 'userId');
+
+    const rows = await this.entityManager.query<
+      Array<{ email: string | null }>
+    >(
+      `
+        select email
+        from users
+        where id = $1
+          and status = 'active'
+        limit 1
+      `,
+      [userId],
+    );
+    const authenticatedEmail = rows[0]?.email?.trim().toLowerCase();
+    const reviewEmail = env.appReviewAccountEmail.trim().toLowerCase();
+
+    if (!authenticatedEmail || authenticatedEmail !== reviewEmail) {
+      throw new ForbiddenException(
+        'virtual tag is only available to the configured App Review account',
+      );
+    }
+
+    if (!env.jwtAccessSecret) {
+      throw new Error('JWT_ACCESS_SECRET is required for the App Review tag');
+    }
+
+    const digest = createHmac('sha256', env.jwtAccessSecret)
+      .update(`rituo-app-review-tag:${userId}`)
+      .digest('hex')
+      .toUpperCase();
+    const tagIdentifier = `RITUO-REVIEW-${digest}`;
+    const claim = await this.claim({
+      userId,
+      tagIdentifier,
+      label: 'Cuenta de demostración',
+    });
+
+    return { tagIdentifier, claim };
+  }
 
   async listByUserId(userId: string): Promise<NfcTagClaim[]> {
     this.validateRequiredText(userId, 'userId');
