@@ -21,6 +21,7 @@ import {
 } from '../../../core/entities/ritualSessions/RitualSession';
 import { RitualSessionSummary } from '../../../core/entities/ritualSessions/RitualSessionSummary';
 import { GetActiveModeSessionInteractor } from '../../../core/interactors/modeSessions/GetActiveModeSessionInteractor';
+import { FinishModeSessionInteractor } from '../../../core/interactors/modeSessions/FinishModeSessionInteractor';
 import { FocusSessionAlreadyActiveError } from '../../../core/interactors/focusSessions/FocusSessionAlreadyActiveError';
 import { GetRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetRitualSessionInteractor';
 import { NfcTagsService } from '../nfcTags/NfcTagsService';
@@ -63,6 +64,7 @@ export class RitualSessionsService {
     private readonly startRitualSessionInteractor: StartRitualSessionInteractor,
     private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
     private readonly getActiveModeSessionInteractor: GetActiveModeSessionInteractor,
+    private readonly finishModeSessionInteractor: FinishModeSessionInteractor,
     private readonly getRitualSessionInteractor: GetRitualSessionInteractor,
     private readonly listUserRitualSessionsInteractor: ListUserRitualSessionsInteractor,
     private readonly listRitualSessionsByRitualInteractor: ListRitualSessionsByRitualInteractor,
@@ -87,6 +89,15 @@ export class RitualSessionsService {
       await this.nfcTagsService.requireActiveTag(data.userId);
     }
 
+    const plannedEndAt = this.parseOptionalDate(
+      data.plannedEndAt,
+      'plannedEndAt',
+    );
+
+    if (plannedEndAt && plannedEndAt.getTime() <= Date.now()) {
+      throw new BadRequestException('plannedEndAt must be in the future');
+    }
+
     const activeSession = await this.getActiveRitualSessionInteractor.execute(
       data.userId,
     );
@@ -104,16 +115,13 @@ export class RitualSessionsService {
     );
 
     if (activeModeSession) {
-      throw this.activeFocusSessionConflict();
-    }
-
-    const plannedEndAt = this.parseOptionalDate(
-      data.plannedEndAt,
-      'plannedEndAt',
-    );
-
-    if (plannedEndAt && plannedEndAt.getTime() <= Date.now()) {
-      throw new BadRequestException('plannedEndAt must be in the future');
+      if (data.startSource !== 'schedule') {
+        throw this.activeFocusSessionConflict();
+      }
+      await this.finishModePreemptedBySchedule(
+        data.userId,
+        activeModeSession.id,
+      );
     }
 
     try {
@@ -139,6 +147,25 @@ export class RitualSessionsService {
         await this.getActiveModeSessionInteractor.execute(data.userId);
 
       if (concurrentModeSession) {
+        if (data.startSource === 'schedule') {
+          await this.finishModePreemptedBySchedule(
+            data.userId,
+            concurrentModeSession.id,
+          );
+          try {
+            return await this.startRitualSessionInteractor.execute({
+              userId: data.userId,
+              ritualId: data.ritualId,
+              plannedEndAt,
+              startSource: data.startSource,
+            });
+          } catch (retryError) {
+            if (retryError instanceof FocusSessionAlreadyActiveError) {
+              throw this.activeFocusSessionConflict();
+            }
+            throw retryError;
+          }
+        }
         throw this.activeFocusSessionConflict();
       }
 
@@ -216,6 +243,17 @@ export class RitualSessionsService {
       throw new BadRequestException(
         'scheduled session cannot end before planned end',
       );
+    }
+
+    if (data.startSource === 'schedule' && data.endSource === 'schedule') {
+      const activeModeSession =
+        await this.getActiveModeSessionInteractor.execute(data.userId);
+      if (activeModeSession) {
+        await this.finishModePreemptedBySchedule(
+          data.userId,
+          activeModeSession.id,
+        );
+      }
     }
 
     return this.idempotencyService.execute({
@@ -383,6 +421,18 @@ export class RitualSessionsService {
         'user already has an active focus session',
       ),
     );
+  }
+
+  private async finishModePreemptedBySchedule(
+    userId: string,
+    sessionId: string,
+  ): Promise<void> {
+    await this.finishModeSessionInteractor.execute({
+      id: sessionId,
+      userId,
+      status: 'cancelled',
+      endSource: 'schedule',
+    });
   }
 
   private validateEndSource(value: RitualSessionEndSource): void {

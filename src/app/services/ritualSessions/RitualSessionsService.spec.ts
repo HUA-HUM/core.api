@@ -11,6 +11,7 @@ describe('RitualSessionsService start validation', () => {
   const startInteractor = { execute: jest.fn() };
   const getActiveInteractor = { execute: jest.fn() };
   const getActiveModeInteractor = { execute: jest.fn() };
+  const finishModeInteractor = { execute: jest.fn() };
   const getRitualInteractor = { execute: jest.fn() };
   const listInteractor = { execute: jest.fn() };
   const listByRitualInteractor = { execute: jest.fn() };
@@ -25,6 +26,7 @@ describe('RitualSessionsService start validation', () => {
     startInteractor as never,
     getActiveInteractor as never,
     getActiveModeInteractor as never,
+    finishModeInteractor as never,
     getRitualInteractor as never,
     listInteractor as never,
     listByRitualInteractor as never,
@@ -49,6 +51,16 @@ describe('RitualSessionsService start validation', () => {
     nfcTagsService.requireActiveTag.mockResolvedValue(undefined);
     nfcTagsService.verifyRequiredTag.mockResolvedValue({ id: 'claim-id' });
     getActiveModeInteractor.execute.mockResolvedValue(null);
+    finishModeInteractor.execute.mockResolvedValue({
+      id: 'mode-session-id',
+      status: 'cancelled',
+    });
+    recordInteractor.execute.mockResolvedValue(
+      createSession({
+        status: 'completed',
+        endedAt: new Date('2026-07-29T11:00:00.000Z'),
+      }),
+    );
     idempotencyService.execute.mockImplementation(
       ({ execute }: { execute: () => Promise<unknown> }) => execute(),
     );
@@ -72,15 +84,36 @@ describe('RitualSessionsService start validation', () => {
     );
   });
 
-  it('rejects starting a ritual while a mode session is active', async () => {
+  it('preempts an active mode when a scheduled ritual starts', async () => {
     getActiveInteractor.execute.mockResolvedValue(null);
     getActiveModeInteractor.execute.mockResolvedValue({
       id: 'mode-session-id',
     });
 
-    await expect(service.start(startRequest())).rejects.toBeInstanceOf(
-      ConflictException,
+    await expect(service.start(startRequest())).resolves.toEqual(
+      createSession(),
     );
+    expect(finishModeInteractor.execute).toHaveBeenCalledWith({
+      id: 'mode-session-id',
+      userId: 'user-id',
+      status: 'cancelled',
+      endSource: 'schedule',
+    });
+    expect(startInteractor.execute).toHaveBeenCalled();
+  });
+
+  it('does not let a manual ritual preempt an active mode', async () => {
+    getActiveModeInteractor.execute.mockResolvedValue({
+      id: 'mode-session-id',
+    });
+
+    await expect(
+      service.start({
+        ...startRequest(),
+        startSource: 'manual',
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(finishModeInteractor.execute).not.toHaveBeenCalled();
     expect(startInteractor.execute).not.toHaveBeenCalled();
   });
 
@@ -120,6 +153,31 @@ describe('RitualSessionsService start validation', () => {
     await service.start(startRequest());
 
     expect(nfcTagsService.requireActiveTag).not.toHaveBeenCalled();
+  });
+
+  it('preempts an active mode when importing a completed scheduled ritual', async () => {
+    getActiveModeInteractor.execute.mockResolvedValue({
+      id: 'mode-session-id',
+    });
+
+    await service.record({
+      userId: 'user-id',
+      ritualId: 'ritual-id',
+      startedAt: '2026-07-29T10:00:00.000Z',
+      plannedEndAt: '2026-07-29T11:00:00.000Z',
+      endedAt: '2026-07-29T11:00:00.000Z',
+      status: 'completed',
+      startSource: 'schedule',
+      endSource: 'schedule',
+    });
+
+    expect(finishModeInteractor.execute).toHaveBeenCalledWith({
+      id: 'mode-session-id',
+      userId: 'user-id',
+      status: 'cancelled',
+      endSource: 'schedule',
+    });
+    expect(recordInteractor.execute).toHaveBeenCalled();
   });
 
   it('rejects starting an archived ritual', async () => {

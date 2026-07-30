@@ -1,4 +1,8 @@
-import { ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ModeSession } from '../../../core/entities/modeSessions/ModeSession';
 import { ModeSessionsService } from './ModeSessionsService';
 
@@ -48,6 +52,11 @@ describe('ModeSessionsService start validation', () => {
     nfcTagsService.verifyRequiredTag.mockResolvedValue({ id: 'claim-id' });
     getActiveModeInteractor.execute.mockResolvedValue(null);
     getActiveRitualInteractor.execute.mockResolvedValue(null);
+    finishInteractor.execute.mockResolvedValue({
+      ...createSession(),
+      status: 'cancelled',
+      endSource: 'schedule',
+    });
     idempotencyService.execute.mockImplementation(
       ({ execute }: { execute: () => Promise<unknown> }) => execute(),
     );
@@ -109,6 +118,22 @@ describe('ModeSessionsService start validation', () => {
       ConflictException,
     );
     expect(startInteractor.execute).not.toHaveBeenCalled();
+  });
+
+  it('does not expose schedule as a public mode finish source', async () => {
+    const activeSession = createSession();
+
+    await expect(
+      service.finish({
+        userId: 'user-id',
+        sessionId: activeSession.id,
+        status: 'cancelled',
+        endSource: 'schedule',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(nfcTagsService.verifyRequiredTag).not.toHaveBeenCalled();
+    expect(finishInteractor.execute).not.toHaveBeenCalled();
   });
 });
 

@@ -1,6 +1,6 @@
 export type ModeSessionStatus = 'active' | 'completed' | 'cancelled';
 export type ModeSessionStartSource = 'manual' | 'nfc';
-export type ModeSessionEndSource = 'manual' | 'nfc' | 'emergency';
+export type ModeSessionEndSource = 'manual' | 'nfc' | 'emergency' | 'schedule';
 
 export interface ModeSession {
   id: string;
