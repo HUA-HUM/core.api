@@ -1,0 +1,306 @@
+RITUO
+
+Términos y Condiciones Generales
+ANTES DE UTILIZAR LA PLATAFORMA Y/O LA TARJETA, LEA DETENIDAMENTE LOS PRESENTES TÉRMINOS Y
+CONDICIONES. AL REGISTRARSE, ACCEDER O UTILIZAR EL SERVICIO, USTED ACEPTA QUEDAR VINCULADO/A POR
+LOS PRESENTES TÉRMINOS. SI NO ACEPTA ESTOS TÉRMINOS EN SU TOTALIDAD, NO UTILICE EL SERVICIO.
+
+Última actualización: 8 de agosto de 2026 · Versión 1.1 · República Argentina
+Contenido
+01. Contenido de los Términos y Condiciones
+Los presentes Términos y Condiciones Generales (en adelante, los "Términos") regulan la relación entre:
+
+ Titular                                                 Valentín María Fernández Caride
+
+ Denominación comercial                                  RITUO
+
+ CUIT                                                    20-42201792-6
+
+ Condición fiscal                                        Monotributista
+
+ Domicilio                                               Bourdet 775, CP 1661, Bella Vista, Buenos Aires,
+                                                         Argentina
+
+ Email de contacto                                       hello@rituo.io
+
+
+
+(en adelante, "RITUO") y toda persona humana que acceda, utilice o se registre en la Plataforma y/o
+adquiera la Tarjeta (en adelante, el "Usuario").
+
+La aceptación de estos Términos implica la aceptación plena y sin reservas por parte del Usuario con
+relación a la prestación de los Servicios ofrecidos en la Plataforma. Esa aceptación por parte del Usuario
+lo vinculará con RITUO mediante un contrato legalmente válido.
+
+
+02. Definiciones
+A los efectos de los presentes Términos, los siguientes términos tendrán el significado que se indica a
+continuación:
+
+    ●      "Cuenta": el perfil personal e intransferible creado por el Usuario en la Plataforma, mediante el
+           cual accede a los servicios de RITUO, gestiona su Tarjeta y administra sus configuraciones y
+           preferencias.
+    ●      "Plataforma": la aplicación móvil desarrollada por RITUO a través de la cual el Usuario puede
+           configurar bloqueos de aplicaciones, establecer rutinas de enfoque y monitorear sus patrones
+           de uso digital.
+    ●      "Servicios": el conjunto de funcionalidades ofrecidas por RITUO a través de su Plataforma,
+           incluyendo sin limitación el acceso a la Plataforma, la emisión y uso de la Tarjeta, la
+           configuración y gestión de bloqueos de aplicaciones, y cualquier otro servicio accesorio o
+           complementario que RITUO ofrezca actualmente o en el futuro a los Usuarios registrados.
+    ●      "Tarjeta": el dispositivo físico de identificación por radiofrecuencia NFC o tecnología
+           equivalente, asociado a la cuenta del Usuario que, al interactuar con el dispositivo del Usuario,
+           activa o desactiva los bloqueos configurados en la Plataforma.
+    ●      "Usuario": toda persona humana mayor de dieciséis (16) años que acceda, utilice o se registre
+           en la Plataforma y/o adquiera la Tarjeta.
+    ●   "Procesadores de Pago": los proveedores externos de servicios de pago habilitados por RITUO
+        para procesar las transacciones realizadas en la Plataforma.
+
+
+03. Objeto y descripción del Servicio
+RITUO provee una solución tecnológica integral orientada al fomento del enfoque, la productividad
+personal y la reducción de la distracción digital. El Servicio combina la Plataforma, mediante la cual el
+Usuario puede configurar bloqueos de aplicaciones, establecer rutinas de enfoque y monitorear sus
+patrones de uso digital, y la Tarjeta, que al interactuar con el dispositivo del Usuario activa o desactiva
+los bloqueos configurados en la Plataforma, con el fin de asistir al Usuario en el desarrollo de hábitos de
+uso consciente de la tecnología, promoviendo una relación más intencional con sus dispositivos móviles.
+
+El acceso a la Plataforma se encuentra sujeto a los requisitos técnicos mínimos y versiones de sistema
+operativo que RITUO informe oportunamente, y el funcionamiento de la Tarjeta depende de la
+operatividad de la Plataforma y de la compatibilidad del dispositivo del Usuario.
+
+En dispositivos iOS, el Servicio utiliza las APIs oficiales de Screen Time provistas por Apple (incluyendo
+los frameworks Family Controls, Managed Settings y Device Activity), y su funcionamiento está sujeto a
+los permisos, condiciones de uso y limitaciones técnicas impuestas por Apple, las cuales pueden variar
+según la versión del sistema operativo. RITUO no garantiza disponibilidad absoluta ni bloqueo perfecto
+de aplicaciones en todos los escenarios posibles.
+
+RITUO pone a disposición esta herramienta como apoyo para la gestión del tiempo y la atención digital,
+sin garantizar resultados específicos en materia de productividad, bienestar o rendimiento. La
+efectividad del Servicio depende, en última instancia, del uso activo y consistente que el Usuario haga
+del mismo.
+
+
+04. Condiciones de acceso y registro
+4.1. Edad mínima
+El acceso al Servicio —incluyendo el uso de la Plataforma y la adquisición de la Tarjeta— está reservado
+a personas que hayan cumplido dieciséis (16) años de edad. Al registrarse, el Usuario declara tener la
+edad requerida.
+
+[Cláusula agregada como mitigación del riesgo señalado — revisar con un abogado antes de publicar:]
+
+En caso de ser menor de dieciocho (18) años, el Usuario declara contar con la autorización de sus
+padres, madres o representantes legales para el uso del Servicio y para la adquisición de la Tarjeta,
+quienes serán responsables solidarios de las obligaciones económicas asumidas conforme al artículo 26
+y concordantes del Código Civil y Comercial de la Nación. RITUO se reserva el derecho de solicitar
+acreditación razonable de dicha autorización.
+4.2. Registro de cuenta
+Para acceder a las funcionalidades del Servicio, el Usuario deberá crear una cuenta proporcionando
+información veraz, actualizada y completa: nombre, apellido, correo electrónico, contraseña y fecha de
+nacimiento. El registro se realiza mediante autenticación propia con correo electrónico y contraseña,
+verificando la dirección de correo electrónico mediante un código o enlace enviado al Usuario. El
+Usuario es responsable de mantener la confidencialidad de sus credenciales de acceso y de todas las
+actividades realizadas bajo su cuenta.
+
+4.3. Cuenta única
+Cada Usuario podrá registrar una (1) sola cuenta personal. La cesión, transferencia o uso de la cuenta
+por terceros no autorizados está expresamente prohibida.
+
+4.4. Veracidad de la información
+RITUO se reserva el derecho de suspender o dar de baja toda cuenta creada con información falsa,
+incompleta o que infrinja estos Términos, sin perjuicio de las acciones legales que pudieran
+corresponder.
+
+
+05. Tarjeta: entrega, uso y responsabilidades
+5.1. Adquisición y envío
+La Tarjeta se comercializa conforme a los precios, plazos y condiciones de envío publicados en la
+Plataforma al momento de la compra. Los plazos de entrega son estimativos y pueden verse afectados
+por circunstancias ajenas al control de RITUO, incluyendo demoras imputables a los operadores
+logísticos o a causas de fuerza mayor. Sin perjuicio de ello, RITUO realizará sus mejores esfuerzos para
+asegurar que el Usuario reciba el producto adquirido.
+
+5.2. Uso adecuado
+La Tarjeta está diseñada exclusivamente para su uso con la Plataforma. El Usuario deberá usarla
+conforme a las instrucciones provistas. Queda prohibida cualquier modificación, ingeniería inversa o uso
+no autorizado del dispositivo.
+
+5.3. Pérdida, robo o daño
+En caso de pérdida, robo o daño de la Tarjeta, el Usuario deberá notificar a RITUO de inmediato. La
+reposición estará sujeta a las condiciones y aranceles vigentes al momento de la solicitud. RITUO no se
+responsabiliza por el uso indebido de la Tarjeta por parte de terceros hasta tanto no sea recibida la
+notificación de pérdida o robo.
+
+5.4. Propiedad del hardware
+La Tarjeta es de propiedad del Usuario desde el momento en que se perfecciona la entrega. En caso de
+pérdida, hurto o robo de la Tarjeta en poder del Usuario, RITUO no tendrá obligación de reponer ni
+recuperar la unidad afectada, siendo la reposición responsabilidad exclusiva del Usuario conforme a las
+condiciones y aranceles vigentes al momento de la solicitud.
+
+
+06. Precios. Procesamiento de pagos
+6.1. El Servicio se comercializa mediante la venta única de la Tarjeta. El precio vigente se publicará en la
+Plataforma y podrá actualizarse con previo aviso de 30 (treinta) días al Usuario.
+
+6.2. Los precios se expresan en pesos argentinos e incluyen el Impuesto al Valor Agregado (IVA), salvo
+indicación en contrario. Otros impuestos, tasas o aranceles que pudieran aplicarse según la jurisdicción
+del Usuario corren a su cargo. Se aceptarán los medios de pago habilitados en la Plataforma al momento
+de la transacción. RITUO podrá incorporar o remover medios de pago sin previo aviso.
+
+6.3. El incumplimiento en el pago habilitará a RITUO a suspender o limitar el acceso al Servicio hasta la
+regularización de la deuda, sin perjuicio del derecho a reclamar daños y perjuicios.
+
+6.4. Procesamiento de pagos. Los pagos realizados en la Plataforma son procesados exclusivamente por
+los Procesadores de Pago que RITUO habilite. RITUO no interviene en el procesamiento de las
+transacciones, no opera como proveedor de servicios de pago, no realiza actividades de procesamiento,
+compensación ni liquidación de pagos, y no se encuentra alcanzada por la regulación del Banco Central
+de la República Argentina en materia de medios de pago, sistemas de pago ni actividad financiera. El
+procesamiento de cada transacción se rige íntegramente por los términos y condiciones y políticas de
+privacidad del Procesador de Pago correspondiente, cuya aceptación por parte del Usuario es condición
+necesaria para completar la operación. RITUO no asume responsabilidad alguna por errores, rechazos,
+demoras o interrupciones en el procesamiento imputables a dichos proveedores.
+
+
+07. Política de devoluciones y derecho de arrepentimiento
+7.1. Derecho de arrepentimiento. En los casos en que aplique la Ley N.° 24.240 de Defensa del
+Consumidor y sus modificaciones, el Usuario que contrate el Servicio por medios electrónicos podrá
+ejercer el derecho de arrepentimiento dentro de los diez (10) días corridos desde la recepción de la
+Tarjeta o la contratación del Servicio, según corresponda, solicitando el reintegro íntegro del precio
+abonado. Para que proceda la devolución de la Tarjeta, ésta deberá ser devuelta en su embalaje original,
+sin uso y sin daños. El costo de envío de devolución será a cargo de RITUO, sin costo alguno para el
+Usuario.
+
+7.2. Si la Tarjeta presenta defectos de fabricación dentro del período de garantía de 3 (tres) meses desde
+la entrega, RITUO procederá a su reposición o reembolso, a su exclusivo criterio, sin costo para el
+Usuario.
+
+
+08. Obligaciones y conducta del Usuario
+El Usuario se compromete a:
+
+    ●   Utilizar el Servicio exclusivamente para fines lícitos y conforme a estos Términos.
+    ●   No intentar vulnerar, alterar o acceder sin autorización a los sistemas, datos o infraestructura de
+        RITUO.
+    ●   No reproducir, distribuir, modificar ni crear obras derivadas de los contenidos de la Plataforma
+        sin autorización previa y por escrito de RITUO.
+    ●   No utilizar el Servicio para perjudicar a terceros ni para actividades que violen la legislación
+        argentina vigente.
+    ●   Mantener actualizada su información de contacto y de pago.
+El incumplimiento de cualquiera de estas obligaciones habilitará a RITUO a suspender o dar de baja la
+cuenta del Usuario, sin perjuicio de las acciones legales que correspondan.
+
+
+09. Propiedad intelectual
+9.1. Todos los derechos de propiedad intelectual sobre la Plataforma, el software, el diseño, los
+contenidos, las marcas, el nombre comercial "RITUO" y la Tarjeta son titularidad exclusiva de RITUO o de
+sus licenciantes. Ninguna disposición de estos Términos implica cesión de dichos derechos al Usuario.
+
+9.2. RITUO otorga al Usuario una licencia personal, no exclusiva, intransferible, revocable y limitada para
+acceder y utilizar la Plataforma únicamente con el fin de hacer uso del Servicio contratado.
+
+9.3. En caso de que el Usuario genere o cargue contenido en la Plataforma (estadísticas de uso,
+configuraciones, etc.), otorga a RITUO una licencia no exclusiva para procesar, almacenar y utilizar dicho
+contenido a los fines de la prestación del Servicio y la mejora de la Plataforma, de conformidad con la
+Política de Privacidad.
+
+
+10. Privacidad y protección de datos personales
+El tratamiento de los datos personales del Usuario se rige por la Política de Privacidad de RITUO,
+disponible dentro de la Plataforma, que forma parte integrante de los presentes Términos.
+
+RITUO procesa datos personales en cumplimiento de la Ley N.° 25.326 de Protección de los Datos
+Personales (LPDP) y demás normativa aplicable. El Usuario podrá ejercer en todo momento sus derechos
+de acceso, rectificación, supresión, confidencialidad y oposición dirigiéndose a hello@rituo.io. Los datos
+personales que RITUO almacena son de carácter limitado y consisten principalmente en: (i) nombre,
+apellido y fecha de nacimiento del Usuario; (ii) dirección de correo electrónico del Usuario; (iii)
+identificador único de la cuenta; (iv) credenciales de acceso protegidas mediante técnicas de hash
+seguro; (v) datos de configuración y uso de la Plataforma (rituales, modos, sesiones, tag NFC vinculado y
+métricas de concentración); y (vi) datos técnicos mínimos necesarios para la prestación del Servicio.
+RITUO no almacena contraseñas en texto plano ni solicita datos sensibles tales como documentos de
+identidad, datos bancarios, información médica o información biométrica.
+11. Limitación de responsabilidad
+11.1. Disponibilidad del Servicio. RITUO realizará esfuerzos razonables para mantener la Plataforma
+disponible de forma continua, pero no garantiza disponibilidad ininterrumpida ni libre de errores. No
+será responsable por interrupciones atribuibles a casos fortuitos, fuerza mayor, mantenimiento
+programado o fallas de terceros (operadores de telecomunicaciones, proveedores de nube, etc.).
+
+11.2. Daños indirectos. En ningún caso RITUO será responsable por daños indirectos, lucro cesante,
+pérdida de productividad o cualquier perjuicio que no sea consecuencia directa e inmediata de un
+incumplimiento comprobado y atribuible a RITUO. La exclusión de responsabilidad por daño moral aquí
+prevista se aplicará en la medida en que resulte compatible con la normativa de defensa del consumidor
+vigente.
+
+11.3. Relaciones con terceros. La Plataforma puede integrar o enlazar servicios de terceros (tiendas de
+aplicaciones, Procesadores de Pago, redes sociales). RITUO no controla ni se responsabiliza por el
+contenido, prácticas, políticas o fallas de dichos terceros, incluyendo sin limitación los errores, rechazos
+o interrupciones en el procesamiento de pagos por parte de los Procesadores de Pago. El Usuario
+reconoce que la relación con dichos terceros se rige exclusivamente por sus propios términos y
+condiciones.
+
+
+12. Suspensión y rescisión
+12.1. El Usuario podrá dar de baja su cuenta en cualquier momento desde la configuración de la
+Plataforma. La baja no genera derecho a reembolso de períodos de suscripción ya abonados.
+
+12.2. RITUO podrá suspender o dar de baja la cuenta del Usuario, con o sin previo aviso según la
+gravedad de la causa, ante:
+
+    ●   Incumplimiento de estos Términos.
+    ●   Uso fraudulento, abusivo o ilícito del Servicio.
+    ●   Falta de pago.
+    ●   Requerimiento de autoridad competente.
+12.3. Efectos de la rescisión. Ante la rescisión del contrato por cualquier causa, cesarán los derechos del
+Usuario sobre la Plataforma. Las cláusulas que por su naturaleza deban sobrevivir (propiedad
+intelectual, limitación de responsabilidad, ley aplicable) mantendrán su vigencia.
+
+
+13. Modificaciones a los Términos
+RITUO se reserva el derecho de modificar los presentes Términos en cualquier momento. Las
+modificaciones serán notificadas al Usuario mediante:
+
+    ●   Publicación de la versión actualizada en la Plataforma, con indicación de la fecha de vigencia;
+        y/o
+    ●   Notificación por correo electrónico al email registrado.
+El uso continuado del Servicio con posterioridad a la fecha de vigencia de las modificaciones implica la
+aceptación de los nuevos Términos. Si el Usuario no acepta las modificaciones, deberá cesar el uso del
+Servicio y dar de baja su cuenta.
+
+
+14. Ley aplicable y jurisdicción
+Los presentes Términos se rigen por las leyes de la República Argentina, en particular por el Código Civil
+y Comercial de la Nación, la Ley N.° 24.240 de Defensa del Consumidor y sus modificaciones, y demás
+normativa aplicable.
+
+Para la resolución de controversias derivadas o relacionadas con estos Términos, las partes se someten a
+la jurisdicción de los Tribunales Ordinarios de la Ciudad Autónoma de Buenos Aires, con renuncia
+expresa a cualquier otro fuero que pudiera corresponder, salvo norma imperativa que establezca un
+fuero diferente en protección del consumidor.
+
+
+15. Disposiciones generales
+15.1. Integralidad
+Los presentes Términos, junto con la Política de Privacidad y demás documentos incorporados por
+referencia, constituyen el acuerdo íntegro entre RITUO y el Usuario respecto del Servicio, y sustituyen
+cualquier acuerdo, comunicación o entendimiento anterior sobre la materia.
+
+15.2. Divisibilidad
+Si alguna cláusula de estos Términos fuere declarada nula o inaplicable, dicha nulidad no afectará la
+validez y vigencia de las restantes disposiciones, las cuales continuarán en plena vigencia.
+
+15.3. No renuncia
+La omisión de RITUO en exigir el cumplimiento de cualquier disposición de estos Términos no implica
+renuncia a su derecho de exigirlo en el futuro.
+
+15.4. Cesión
+El Usuario no podrá ceder ni transferir sus derechos u obligaciones bajo estos Términos sin el
+consentimiento previo y por escrito de RITUO. RITUO podrá ceder estos Términos en el marco de una
+reorganización societaria, fusión, adquisición o venta de activos, notificando al Usuario en forma
+oportuna.
+
+
+16. Contacto y atención al Usuario
+Para consultas, reclamos o ejercicio de derechos, el Usuario podrá comunicarse con RITUO a través del
+correo electrónico: hello@rituo.io
+RITUO se compromete a responder las consultas dentro de un plazo razonable y no superior a 5 (cinco)
+días hábiles.
+
+© 2026 RITUO. Todos los derechos reservados. Estos Términos se rigen por las leyes de la República Argentina.

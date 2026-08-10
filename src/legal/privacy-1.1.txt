@@ -1,0 +1,284 @@
+RITUO
+
+Política de Privacidad
+Cómo recolectamos, usamos y protegemos tus datos personales cuando usás la app Rituo y la Tarjeta
+NFC asociada.
+Última actualización: 8 de agosto de 2026 · Versión 1.1 · República Argentina
+Contenido
+01. Responsable del tratamiento
+El responsable del tratamiento de tus datos personales en los términos de la Ley 25.326 de Protección
+de Datos Personales de la República Argentina es:
+
+ Titular                                                Valentín María Fernández Caride
+
+ Denominación comercial                                 RITUO
+
+ CUIT                                                   20-42201792-6
+
+ Condición fiscal                                       Monotributista
+
+ Domicilio                                              Bourdet 775, CP 1661, Bella Vista, Buenos Aires,
+                                                        Argentina
+
+ Email de contacto                                      hello@rituo.io
+
+
+
+En adelante, nos referiremos al responsable como "RITUO", "nosotros" o "el responsable".
+
+
+02. Alcance y aceptación
+Esta Política de Privacidad describe cómo RITUO recolecta, almacena, utiliza y protege la información
+personal de las personas usuarias ("el Usuario" o "vos") que descargan, instalan y utilizan la aplicación
+móvil Rituo (la "Plataforma") para iOS, así como la Tarjeta NFC física asociada (en conjunto, "el
+Servicio").
+
+Al registrarte, aceptar los Términos y Condiciones y utilizar el Servicio, realizás una acción afirmativa,
+libre e informada que manifiesta tu voluntad de aceptar esta Política y prestar tu consentimiento al
+tratamiento de tus datos personales, conforme a los artículos 5° y 6° de la Ley 25.326.
+
+Podés revocar tu consentimiento en cualquier momento, sin efectos retroactivos, mediante el
+procedimiento descripto en la sección "Tus derechos como titular".
+
+
+03. Datos que recolectamos
+Recolectamos únicamente los datos necesarios para prestar el Servicio. El registro en la app se realiza
+con nombre, apellido, correo electrónico, contraseña y fecha de nacimiento, con verificación del email
+mediante un código o enlace enviado a esa dirección.
+
+3.1. Datos de registro y cuenta
+ Dato                                Obligatoriedad                       Origen
+
+ Nombre y apellido                   Obligatorio                          Provisto por el Usuario
+
+ Correo electrónico                  Obligatorio (único)                  Provisto por el Usuario
+ Fecha de nacimiento                 Obligatorio                         Provisto por el Usuario
+                                                                         (validación de edad mínima: 16
+                                                                         años)
+
+ Contraseña                          Obligatorio                         Generada por el Usuario;
+                                                                         almacenada con hash — nunca
+                                                                         en texto plano
+
+ Código/enlace de verificación       Temporal                            Generado por el sistema; expira
+ de email                                                                automáticamente
+
+
+
+3.2. Datos de uso del Servicio
+    ●   Rituales y Modos: configuración de días, horarios, duración y nombre de cada Ritual o Modo
+        (por ejemplo, Gimnasio, Reunión, Lectura, Trabajo, Dormir, o personalizados).
+    ●   Sesiones: fecha y hora de inicio y finalización, duración y origen (Ritual o Modo).
+    ●   Tarjeta NFC vinculada: identificador único de la Tarjeta (UID), almacenado en formato cifrado
+        (hash), y el nombre que vos le asignes. El UID original no se transmite en texto plano.
+    ●   Métricas de concentración: tiempo total, sesiones completadas, promedio diario, rachas e
+        historial agregados.
+    ●   Preferencias y configuración de cuenta.
+
+
+
+3.3. Datos técnicos del servidor
+    ●   Logs del servidor (timestamp, endpoint accedido, código de respuesta HTTP, errores). Estos logs
+        pueden contener tu dirección IP de forma transitoria con fines de seguridad y diagnóstico.
+    ●   Token de sesión/autenticación, almacenado de forma segura en el dispositivo.
+
+
+
+3.4. Datos de la compra de la Tarjeta
+Si adquirís la Tarjeta, el pago es procesado exclusivamente por el Procesador de Pago que habilitemos
+en la Plataforma. RITUO no accede ni almacena los datos de tu medio de pago (número de tarjeta, CVV,
+etc.); esos datos son tratados directamente por el Procesador de Pago conforme a su propia política de
+privacidad.
+
+3.5. Datos que NO recolectamos
+Importante: RITUO no recolecta tu ubicación geográfica, contactos, mensajes, fotos, ni el contenido que
+visitás dentro de las apps o sitios bloqueados. La selección específica de qué apps, categorías o sitios
+web decidís bloquear en cada Ritual o Modo permanece almacenada exclusivamente en tu dispositivo,
+gestionada por las APIs de Apple, conforme se detalla en la sección 5. RITUO tampoco solicita
+documentos de identidad, datos bancarios, información médica ni información biométrica.
+
+
+04. Finalidades y bases legales del tratamiento
+ Finalidad                                            Base legal (Ley 25.326)
+
+ Crear y administrar tu Cuenta, autenticarte y        Ejecución de la relación contractual (art. 5°.2.a)
+ permitirte el uso del Servicio
+
+ Verificar tu email y permitir la recuperación de     Ejecución contractual y consentimiento
+ contraseña
+
+ Sincronizar tus Rituales, Modos, Sesiones,           Ejecución contractual (art. 5°.2.a)
+ métricas y Tarjeta NFC entre dispositivos
+
+ Procesar la compra de la Tarjeta a través del        Ejecución contractual
+ Procesador de Pago
+
+ Mantener registros de actividad para seguridad,      Interés legítimo y obligación legal (art. 5°.2.b y c)
+ prevención de fraude y diagnóstico técnico
+
+ Atender consultas, reclamos y solicitudes de         Consentimiento y obligación legal
+ ejercicio de derechos
+
+
+
+No utilizamos tus datos para tomar decisiones automatizadas con efectos jurídicos, ni para perfilarte con
+fines publicitarios.
+
+
+05. Datos de Apple Family Controls, Managed Settings y Device
+Activity
+Rituo utiliza las APIs nativas de Apple Family Controls, Managed Settings, Device Activity, Shield
+Configuration y Safari Content Blocker para aplicar las restricciones que vos configurás.
+
+    ●   La selección específica de apps, categorías y sitios web que decidís bloquear en cada Ritual o
+        Modo se almacena exclusivamente en tu dispositivo, mediante mecanismos provistos por
+        Apple. Esta información nunca se envía a nuestros servidores ni a terceros, ni podemos leerla.
+    ●   Lo que sí sincronizamos con nuestro backend son los metadatos operativos del Ritual o Modo
+        (nombre, horario, duración, si está activo) necesarios para la programación en segundo plano y
+        las métricas agregadas de la Sesión — nunca el detalle de qué apps o sitios puntuales
+        bloqueaste.
+    ●   El uso de estas APIs requiere que otorgues autorización explícita a través del sistema operativo
+        de Apple, conforme a las políticas de privacidad de Apple Inc.
+06. Proveedores y terceros
+Para prestar el Servicio, RITUO contrata proveedores que actúan como encargados del tratamiento bajo
+nuestras instrucciones y obligaciones contractuales de confidencialidad y seguridad (art. 25 Ley 25.326):
+
+ Proveedor                 Finalidad                  Datos que accede           Jurisdicción
+
+ DigitalOcean, LLC         Hosting del backend        Toda la información de     Estados Unidos
+                           (droplet Ubuntu con la     cuenta y uso
+                           API) y de la base de       almacenada en la base
+                           datos (Postgres            de datos
+                           administrado)
+
+ Resend                    Envío transaccional de     Email y contenido del      Estados Unidos
+                           emails (verificación de    mensaje enviado
+                           cuenta, recuperación
+                           de contraseña)
+
+ Apple Inc.                Distribución de la app     Datos de Apple ID del      Estados Unidos /
+                           (App Store), Screen        Usuario (sin acceso por    Irlanda
+                           Time / Family Controls,    parte de RITUO)
+                           notificaciones
+
+ [COMPLETAR:               Procesamiento del          Datos de pago (no          [COMPLETAR]
+ Procesador de Pago        pago único de la           accedidos ni
+ habilitado para la        Tarjeta NFC                almacenados por
+ compra de la Tarjeta]                                RITUO)
+
+
+
+No vendemos, alquilamos ni cedemos tus datos personales a terceros con fines comerciales o
+publicitarios.
+
+
+07. Transferencia internacional de datos
+Como surge de la sección anterior, tus datos se almacenan y procesan en servidores ubicados fuera de
+la República Argentina, principalmente en los Estados Unidos de América (DigitalOcean, Resend).
+
+Conforme al artículo 12 de la Ley 25.326 y a la Disposición 60-E/2016 de la AAIP, los Estados Unidos no
+han sido declarados con "nivel adecuado de protección" por la autoridad argentina. La transferencia se
+realiza sobre las siguientes bases legales habilitantes:
+
+    ●   Consentimiento expreso del titular (art. 12.2.e Ley 25.326), prestado al aceptar esta Política.
+    ●   Necesidad para la ejecución del contrato entre el Usuario y RITUO (art. 12.2.c).
+    ●   Cláusulas contractuales con cada proveedor que imponen obligaciones de confidencialidad,
+        finalidad limitada y medidas técnicas y organizativas de seguridad.
+08. Plazo de conservación
+    ●   Datos de cuenta: mientras tu Cuenta esté activa.
+    ●   Datos de uso (Rituales, Modos, Sesiones, métricas): mientras tu Cuenta esté activa.
+    ●   Datos tras la eliminación de la Cuenta: aplicamos eliminación lógica (soft delete) inmediata y
+        eliminación definitiva dentro de los 30 días corridos, salvo que una obligación legal nos exija
+        conservarlos por más tiempo (por ejemplo, registros fiscales de la compra de la Tarjeta).
+    ●   Códigos de verificación: expiran automáticamente a los pocos minutos de su emisión.
+    ●   Logs técnicos: hasta 90 días.
+
+
+09. Medidas de seguridad
+    ●   Cifrado en tránsito mediante HTTPS/TLS para toda comunicación con el servidor.
+    ●   Contraseñas almacenadas con hash, irrecuperables incluso para nosotros.
+    ●   Identificador de la Tarjeta NFC (UID) almacenado con hash, nunca en texto plano.
+    ●   Acceso a la base de datos restringido y auditado.
+    ●   Backups periódicos.
+Ningún sistema es 100% inviolable. En caso de incidente de seguridad que pueda afectar tus datos
+personales, te notificaremos sin demora indebida y reportaremos a la AAIP cuando corresponda.
+
+
+10. Edad mínima
+El Servicio está destinado exclusivamente a personas mayores de 16 (dieciséis) años. RITUO no recolecta
+intencionalmente datos de personas menores de esa edad. Si tomamos conocimiento de que una
+Cuenta pertenece a alguien menor de 16 años, procederemos a eliminarla junto con todos los datos
+asociados.
+
+Si sos menor de 18 años, al registrarte declarás contar con la autorización de tus padres, madres o
+representantes legales para el uso del Servicio y, en su caso, para la adquisición de la Tarjeta, conforme
+se detalla en los Términos y Condiciones.
+
+
+11. Tus derechos como titular
+Como titular de los datos personales, la Ley 25.326 te reconoce los siguientes derechos, que podés
+ejercer en forma gratuita:
+
+ Derecho                                               Alcance
+
+ Acceso (art. 14)                                      Conocer qué datos tuyos tratamos, su origen,
+                                                       finalidad y destinatarios.
+ Rectificación (art. 16)                              Corregir datos inexactos o desactualizados.
+
+ Supresión (art. 16)                                  Eliminar tus datos cuando ya no sean necesarios
+                                                      o hayas revocado el consentimiento. También
+                                                      disponible desde la configuración de la
+                                                      Plataforma.
+
+ Oposición                                            Oponerte a determinados tratamientos por
+                                                      motivos legítimos.
+
+ Portabilidad                                         Recibir copia de tus datos en formato
+                                                      estructurado y de uso común.
+
+ Revocación del consentimiento                        Retirar el consentimiento, sin efectos
+                                                      retroactivos.
+
+
+
+Para ejercer cualquiera de estos derechos, escribinos a hello@rituo.io indicando tu nombre completo,
+email registrado y el derecho que querés ejercer. Te responderemos dentro de un plazo no superior a 5
+(cinco) días hábiles, conforme a lo establecido en los Términos y Condiciones.
+
+Si considerás que tu solicitud no fue atendida adecuadamente, podés interponer una acción de habeas
+data ante los tribunales competentes o presentar reclamo administrativo ante la AAIP.
+
+
+12. Incidentes de seguridad
+Conforme a la Disposición 47/2018 de la AAIP, en caso de un incidente de seguridad que pueda
+comprometer la confidencialidad, integridad o disponibilidad de tus datos personales, reportaremos el
+incidente a la AAIP dentro de las 72 horas de haber tomado conocimiento, cuando corresponda, y te
+notificaremos sin demora indebida cuando el incidente pueda afectarte significativamente.
+
+
+13. Cambios a esta política
+Podemos actualizar esta Política de Privacidad para reflejar cambios en nuestras prácticas, en la
+tecnología o en la normativa aplicable. La versión vigente siempre estará disponible dentro de la
+aplicación, con indicación de la fecha de la última actualización.
+
+Cuando los cambios sean sustanciales y puedan afectar tus derechos, te lo notificaremos por email o
+mediante un aviso destacado dentro de la app, con al menos 30 días de antelación a la entrada en vigor.
+Si no estás de acuerdo con los cambios, podés eliminar tu Cuenta antes de esa fecha sin costo ni
+penalidad.
+14. Contacto y reclamos
+Para cualquier consulta, reclamo o ejercicio de derechos en materia de protección de datos personales,
+podés contactarnos en:
+
+Email: hello@rituo.io
+
+Asimismo, si considerás que el tratamiento de tus datos infringe la normativa vigente, tenés derecho a
+presentar un reclamo ante la autoridad de control argentina:
+
+Agencia de Acceso a la Información Pública (AAIP) — Dirección Nacional de Protección de Datos
+Personales
+
+Av. Pte. Gral. Julio A. Roca 710, Piso 2 — CABA, Argentina
+
+Web: argentina.gob.ar/aaip
+
+© 2026 RITUO. Todos los derechos reservados. Esta Política se rige por las leyes de la República Argentina.
