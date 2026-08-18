@@ -11,7 +11,7 @@ export class AppUpdatesController {
 
   @Get('status')
   @ApiOperation({ summary: 'Check whether an app build should update' })
-  @ApiQuery({ name: 'platform', example: 'ios' })
+  @ApiQuery({ name: 'platform', example: 'ios', enum: ['ios', 'android'] })
   @ApiQuery({ name: 'build', example: '24' })
   @ApiQuery({ name: 'version', required: false, example: '1.0' })
   status(

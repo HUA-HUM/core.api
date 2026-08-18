@@ -107,10 +107,11 @@ export class AppUpdatesService {
   }
 
   private platform(value: string): AppPlatform {
-    if (value?.trim().toLowerCase() !== 'ios') {
-      throw new BadRequestException('platform must be ios');
+    const normalized = value?.trim().toLowerCase();
+    if (normalized !== 'ios' && normalized !== 'android') {
+      throw new BadRequestException('platform must be ios or android');
     }
-    return 'ios';
+    return normalized;
   }
 
   private positiveInteger(

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SaveAppUpdateConfigurationDto {
-  @ApiProperty({ enum: ['ios'], example: 'ios' })
+  @ApiProperty({ enum: ['ios', 'android'], example: 'ios' })
   platform!: string;
 
   @ApiProperty({ example: '1.1.0' })

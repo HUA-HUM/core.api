@@ -1,0 +1,43 @@
+name: core-api
+region: nyc
+
+services:
+  - name: core-api
+    dockerfile_path: Dockerfile
+    source_dir: /
+    github:
+      repo: arturogutierrez11/core.api
+      branch: main
+      deploy_on_push: true
+    http_port: 3000
+    instance_count: 2
+    instance_size_slug: apps-s-1vcpu-1gb
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    envs:
+      - key: SERVICE_NAME
+        scope: RUN_TIME
+        value: rituo-core-api
+      - key: ANALYTICS_TIME_ZONE
+        scope: RUN_TIME
+        value: America/Argentina/Buenos_Aires
+      - key: CORS_ORIGINS
+        scope: RUN_TIME
+        value: ""
+      - key: APP_REVIEW_ACCOUNT_EMAIL
+        scope: RUN_TIME
+        value: hello@rituo.io
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: JWT_ACCESS_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: INTERNAL_ANALYTICS_API_KEY
+        scope: RUN_TIME
+        type: SECRET

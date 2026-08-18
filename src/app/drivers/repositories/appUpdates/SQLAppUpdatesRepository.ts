@@ -39,9 +39,42 @@ export class SQLAppUpdatesRepository implements IAppUpdatesRepository {
         store_url text not null,
         is_active boolean not null default true,
         updated_at timestamptz not null default now(),
-        check (platform in ('ios')),
         check (minimum_build <= latest_build)
       )
+    `);
+
+    // Widens the legacy ios-only platform check to ios/android. Runs on every
+    // boot and is idempotent: it drops whichever auto-named check constraint
+    // still restricts platform to a single value, then (re)adds a fixed-name
+    // constraint allowing both platforms.
+    await this.entityManager.query(`
+      DO $$
+      DECLARE
+        legacy_constraint text;
+      BEGIN
+        SELECT con.conname INTO legacy_constraint
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        WHERE rel.relname = 'app_update_configurations'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) ILIKE '%platform%'
+          AND pg_get_constraintdef(con.oid) NOT ILIKE '%android%'
+        LIMIT 1;
+
+        IF legacy_constraint IS NOT NULL THEN
+          EXECUTE format(
+            'ALTER TABLE app_update_configurations DROP CONSTRAINT %I',
+            legacy_constraint
+          );
+        END IF;
+
+        ALTER TABLE app_update_configurations
+          DROP CONSTRAINT IF EXISTS app_update_configurations_platform_check;
+
+        ALTER TABLE app_update_configurations
+          ADD CONSTRAINT app_update_configurations_platform_check
+          CHECK (platform IN ('ios', 'android'));
+      END $$;
     `);
   }
 

@@ -1,4 +1,4 @@
-export type AppPlatform = 'ios';
+export type AppPlatform = 'ios' | 'android';
 
 export interface AppUpdateConfiguration {
   platform: AppPlatform;

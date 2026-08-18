@@ -70,4 +70,29 @@ describe('AppUpdatesService', () => {
       }),
     ).toThrow(BadRequestException);
   });
+
+  it('accepts android as a valid platform', async () => {
+    await service.status('android', '27', '1.0');
+    expect(repository.findByPlatform).toHaveBeenCalledWith('android');
+
+    await service.save({
+      platform: 'android',
+      latestVersion: '1.2.0',
+      latestBuild: 30,
+      minimumBuild: 28,
+      title: 'Nueva versión',
+      message: 'Actualizá para continuar.',
+      storeUrl: 'https://play.google.com/store/apps/details?id=io.rituo.app',
+      isActive: true,
+    });
+    expect(repository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ platform: 'android' }),
+    );
+  });
+
+  it('rejects an unsupported platform', async () => {
+    await expect(service.status('windows', '27', '1.0')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
 });
