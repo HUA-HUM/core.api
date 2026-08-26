@@ -19,6 +19,16 @@ import {
 } from '../../../core/entities/modeBlockedItems/ModeBlockedItem';
 import { RITUAL_PASSWORD_HASHER } from '../../../core/adapters/services/rituals/IRitualPasswordHasher';
 import type { IRitualPasswordHasher } from '../../../core/adapters/services/rituals/IRitualPasswordHasher';
+import { GetModeBreaksInteractor } from '../../../core/interactors/modeBreaks/GetModeBreaksInteractor';
+import { SaveModeBreaksInteractor } from '../../../core/interactors/modeBreaks/SaveModeBreaksInteractor';
+import { ModeBreakSettings } from '../../../core/entities/modeBreaks/ModeBreakSettings';
+
+const DEFAULT_BREAK_DURATION_MINUTES = 5;
+
+export interface SaveModeBreaksServiceData {
+  breakCount: number;
+  breakDurationMinutes?: number;
+}
 
 export interface ReplaceModeBlockedItemServiceData {
   platform?: ModeBlockedItemPlatform;
@@ -58,6 +68,8 @@ export class ModesService {
     private readonly updateModeInteractor: UpdateModeInteractor,
     private readonly listModeBlockedItemsInteractor: ListModeBlockedItemsInteractor,
     private readonly replaceModeBlockedItemsInteractor: ReplaceModeBlockedItemsInteractor,
+    private readonly getModeBreaksInteractor: GetModeBreaksInteractor,
+    private readonly saveModeBreaksInteractor: SaveModeBreaksInteractor,
     @Inject(RITUAL_PASSWORD_HASHER)
     private readonly passwordHasher: IRitualPasswordHasher,
   ) {}
@@ -206,6 +218,60 @@ export class ModesService {
     });
 
     return replacedItems;
+  }
+
+  async getBreaks(userId: string, modeId: string): Promise<ModeBreakSettings> {
+    await this.getById(userId, modeId);
+
+    const settings = await this.getModeBreaksInteractor.execute(modeId);
+
+    return (
+      settings ?? {
+        modeId,
+        breakCount: 0,
+        breakDurationMinutes: DEFAULT_BREAK_DURATION_MINUTES,
+      }
+    );
+  }
+
+  async saveBreaks(
+    userId: string,
+    modeId: string,
+    data: SaveModeBreaksServiceData,
+  ): Promise<ModeBreakSettings> {
+    await this.getById(userId, modeId);
+    this.validateBreaksData(data);
+
+    return this.saveModeBreaksInteractor.execute({
+      modeId,
+      breakCount: data.breakCount,
+      breakDurationMinutes:
+        data.breakCount > 0
+          ? (data.breakDurationMinutes as number)
+          : (data.breakDurationMinutes ?? DEFAULT_BREAK_DURATION_MINUTES),
+    });
+  }
+
+  private validateBreaksData(data: SaveModeBreaksServiceData): void {
+    if (
+      !Number.isInteger(data.breakCount) ||
+      data.breakCount < 0 ||
+      data.breakCount > 3
+    ) {
+      throw new BadRequestException(
+        'breakCount must be an integer between 0 and 3',
+      );
+    }
+
+    if (data.breakCount > 0) {
+      const duration = data.breakDurationMinutes;
+
+      if (!Number.isInteger(duration) || duration! < 1 || duration! > 5) {
+        throw new BadRequestException(
+          'breakDurationMinutes must be an integer between 1 and 5 when breakCount is greater than 0',
+        );
+      }
+    }
   }
 
   private async ensureDefaultModes(userId: string): Promise<void> {

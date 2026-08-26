@@ -3,27 +3,31 @@ import { Ritual } from '../../../core/entities/rituals/Ritual';
 import { RitualSession } from '../../../core/entities/ritualSessions/RitualSession';
 import { RitualsService } from './RitualsService';
 
+const createRitualInteractor = { execute: jest.fn() };
+const updateRitualInteractor = { execute: jest.fn() };
+const listUserRitualsInteractor = { execute: jest.fn() };
+const getRitualInteractor = { execute: jest.fn() };
+const deleteRitualInteractor = { execute: jest.fn() };
+const getActiveRitualSessionInteractor = { execute: jest.fn() };
+const listRitualBlockedItemsInteractor = { execute: jest.fn() };
+const replaceRitualBlockedItemsInteractor = { execute: jest.fn() };
+const getRitualBreaksInteractor = { execute: jest.fn() };
+const saveRitualBreaksInteractor = { execute: jest.fn() };
+
+const service = new RitualsService(
+  createRitualInteractor as never,
+  updateRitualInteractor as never,
+  listUserRitualsInteractor as never,
+  getRitualInteractor as never,
+  deleteRitualInteractor as never,
+  getActiveRitualSessionInteractor as never,
+  listRitualBlockedItemsInteractor as never,
+  replaceRitualBlockedItemsInteractor as never,
+  getRitualBreaksInteractor as never,
+  saveRitualBreaksInteractor as never,
+);
+
 describe('RitualsService.update', () => {
-  const createRitualInteractor = { execute: jest.fn() };
-  const updateRitualInteractor = { execute: jest.fn() };
-  const listUserRitualsInteractor = { execute: jest.fn() };
-  const getRitualInteractor = { execute: jest.fn() };
-  const deleteRitualInteractor = { execute: jest.fn() };
-  const getActiveRitualSessionInteractor = { execute: jest.fn() };
-  const listRitualBlockedItemsInteractor = { execute: jest.fn() };
-  const replaceRitualBlockedItemsInteractor = { execute: jest.fn() };
-
-  const service = new RitualsService(
-    createRitualInteractor as never,
-    updateRitualInteractor as never,
-    listUserRitualsInteractor as never,
-    getRitualInteractor as never,
-    deleteRitualInteractor as never,
-    getActiveRitualSessionInteractor as never,
-    listRitualBlockedItemsInteractor as never,
-    replaceRitualBlockedItemsInteractor as never,
-  );
-
   beforeEach(() => {
     jest.clearAllMocks();
     getRitualInteractor.execute.mockResolvedValue(createRitual());
@@ -103,6 +107,88 @@ describe('RitualsService.update', () => {
         'ritual-id',
         updateRequest({ durationMinutes: 0 }),
       ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
+
+describe('RitualsService breaks', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getRitualInteractor.execute.mockResolvedValue(createRitual());
+    saveRitualBreaksInteractor.execute.mockImplementation((data) =>
+      Promise.resolve(data),
+    );
+  });
+
+  it('returns 0 breaks by default when nothing was saved yet', async () => {
+    getRitualBreaksInteractor.execute.mockResolvedValue(null);
+
+    const settings = await service.getBreaks('user-id', 'ritual-id');
+
+    expect(settings).toEqual({
+      ritualId: 'ritual-id',
+      breakCount: 0,
+      breakDurationMinutes: 5,
+    });
+  });
+
+  it('returns 404 when getting breaks for a ritual that is not the user\'s', async () => {
+    getRitualInteractor.execute.mockResolvedValue(
+      createRitual({ userId: 'someone-else' }),
+    );
+
+    await expect(
+      service.getBreaks('user-id', 'ritual-id'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('saves valid break settings', async () => {
+    const settings = await service.saveBreaks('user-id', 'ritual-id', {
+      breakCount: 2,
+      breakDurationMinutes: 3,
+    });
+
+    expect(saveRitualBreaksInteractor.execute).toHaveBeenCalledWith({
+      ritualId: 'ritual-id',
+      breakCount: 2,
+      breakDurationMinutes: 3,
+    });
+    expect(settings).toEqual({
+      ritualId: 'ritual-id',
+      breakCount: 2,
+      breakDurationMinutes: 3,
+    });
+  });
+
+  it('defaults breakDurationMinutes when breakCount is 0', async () => {
+    await service.saveBreaks('user-id', 'ritual-id', { breakCount: 0 });
+
+    expect(saveRitualBreaksInteractor.execute).toHaveBeenCalledWith({
+      ritualId: 'ritual-id',
+      breakCount: 0,
+      breakDurationMinutes: 5,
+    });
+  });
+
+  it('rejects a breakCount outside 0-3', async () => {
+    await expect(
+      service.saveBreaks('user-id', 'ritual-id', { breakCount: 4 }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(saveRitualBreaksInteractor.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects a missing breakDurationMinutes when breakCount > 0', async () => {
+    await expect(
+      service.saveBreaks('user-id', 'ritual-id', { breakCount: 1 }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects a breakDurationMinutes outside 1-5', async () => {
+    await expect(
+      service.saveBreaks('user-id', 'ritual-id', {
+        breakCount: 1,
+        breakDurationMinutes: 6,
+      }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

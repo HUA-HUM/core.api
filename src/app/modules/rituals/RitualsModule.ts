@@ -20,6 +20,14 @@ import {
 } from '../../../core/adapters/repositories/ritualBlockedItems/IRitualBlockedItemsRepository';
 import { ListRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ListRitualBlockedItemsInteractor';
 import { ReplaceRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ReplaceRitualBlockedItemsInteractor';
+import {
+  IRitualBreaksRepository,
+  RITUAL_BREAKS_REPOSITORY,
+} from '../../../core/adapters/repositories/ritualBreaks/IRitualBreaksRepository';
+import { GetRitualBreaksInteractor } from '../../../core/interactors/ritualBreaks/GetRitualBreaksInteractor';
+import { SaveRitualBreaksInteractor } from '../../../core/interactors/ritualBreaks/SaveRitualBreaksInteractor';
+import { SQLRitualBreaksRepository } from '../../drivers/repositories/ritualBreaks/SQLRitualBreaksRepository';
+import { InitialRitualBreaksService } from '../../services/ritualBreaks/InitialRitualBreaksService';
 import { RitualsService } from '../../services/rituals/RitualsService';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
 import {
@@ -94,6 +102,23 @@ import { ScryptRitualPasswordHasher } from '../../services/rituals/ScryptRitualP
         new ReplaceRitualBlockedItemsInteractor(ritualBlockedItemsRepository),
       inject: [RITUAL_BLOCKED_ITEMS_REPOSITORY],
     },
+    {
+      provide: RITUAL_BREAKS_REPOSITORY,
+      useClass: SQLRitualBreaksRepository,
+    },
+    {
+      provide: GetRitualBreaksInteractor,
+      useFactory: (ritualBreaksRepository: IRitualBreaksRepository) =>
+        new GetRitualBreaksInteractor(ritualBreaksRepository),
+      inject: [RITUAL_BREAKS_REPOSITORY],
+    },
+    {
+      provide: SaveRitualBreaksInteractor,
+      useFactory: (ritualBreaksRepository: IRitualBreaksRepository) =>
+        new SaveRitualBreaksInteractor(ritualBreaksRepository),
+      inject: [RITUAL_BREAKS_REPOSITORY],
+    },
+    InitialRitualBreaksService,
     RitualsService,
   ],
   exports: [RitualsService],

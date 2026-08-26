@@ -19,6 +19,14 @@ import { ListUserModesInteractor } from '../../../core/interactors/modes/ListUse
 import { UpdateModeInteractor } from '../../../core/interactors/modes/UpdateModeInteractor';
 import { ListModeBlockedItemsInteractor } from '../../../core/interactors/modeBlockedItems/ListModeBlockedItemsInteractor';
 import { ReplaceModeBlockedItemsInteractor } from '../../../core/interactors/modeBlockedItems/ReplaceModeBlockedItemsInteractor';
+import {
+  IModeBreaksRepository,
+  MODE_BREAKS_REPOSITORY,
+} from '../../../core/adapters/repositories/modeBreaks/IModeBreaksRepository';
+import { GetModeBreaksInteractor } from '../../../core/interactors/modeBreaks/GetModeBreaksInteractor';
+import { SaveModeBreaksInteractor } from '../../../core/interactors/modeBreaks/SaveModeBreaksInteractor';
+import { SQLModeBreaksRepository } from '../../drivers/repositories/modeBreaks/SQLModeBreaksRepository';
+import { InitialModeBreaksService } from '../../services/modeBreaks/InitialModeBreaksService';
 import { ModesService } from '../../services/modes/ModesService';
 import { ScryptRitualPasswordHasher } from '../../services/rituals/ScryptRitualPasswordHasher';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
@@ -75,6 +83,23 @@ import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
         new ReplaceModeBlockedItemsInteractor(modeBlockedItemsRepository),
       inject: [MODE_BLOCKED_ITEMS_REPOSITORY],
     },
+    {
+      provide: MODE_BREAKS_REPOSITORY,
+      useClass: SQLModeBreaksRepository,
+    },
+    {
+      provide: GetModeBreaksInteractor,
+      useFactory: (modeBreaksRepository: IModeBreaksRepository) =>
+        new GetModeBreaksInteractor(modeBreaksRepository),
+      inject: [MODE_BREAKS_REPOSITORY],
+    },
+    {
+      provide: SaveModeBreaksInteractor,
+      useFactory: (modeBreaksRepository: IModeBreaksRepository) =>
+        new SaveModeBreaksInteractor(modeBreaksRepository),
+      inject: [MODE_BREAKS_REPOSITORY],
+    },
+    InitialModeBreaksService,
     ModesService,
   ],
   exports: [ModesService],

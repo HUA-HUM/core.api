@@ -26,6 +26,8 @@ import { UpdateModeDto } from '../../dtos/modes/UpdateModeDto';
 import { RenameModeDto } from '../../dtos/modes/RenameModeDto';
 import { ReplaceModeBlockedItemsDto } from '../../dtos/modeBlockedItems/ReplaceModeBlockedItemsDto';
 import { ModeBlockedItemResponseDto } from '../../dtos/modeBlockedItems/ModeBlockedItemResponseDto';
+import { SaveModeBreaksDto } from '../../dtos/modeBreaks/SaveModeBreaksDto';
+import { ModeBreaksResponseDto } from '../../dtos/modeBreaks/ModeBreaksResponseDto';
 import type { ModeBlockedItemPlatform } from '../../../core/entities/modeBlockedItems/ModeBlockedItem';
 import { IdempotencyService } from '../../services/idempotency/IdempotencyService';
 
@@ -181,5 +183,41 @@ export class ModesController {
     });
 
     return items.map((item) => ModeBlockedItemResponseDto.fromEntity(item));
+  }
+
+  @Get(':id/breaks')
+  @ApiOperation({ summary: 'Get break settings for a mode' })
+  @ApiResponse({ status: 200, type: ModeBreaksResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async getBreaks(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<ModeBreaksResponseDto> {
+    const settings = await this.modesService.getBreaks(
+      request.authUser.id,
+      id,
+    );
+    return ModeBreaksResponseDto.fromEntity(settings);
+  }
+
+  @Post(':id/breaks')
+  @ApiOperation({ summary: 'Save break settings for a mode' })
+  @ApiResponse({ status: 201, type: ModeBreaksResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async saveBreaks(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: SaveModeBreaksDto,
+  ): Promise<ModeBreaksResponseDto> {
+    const settings = await this.modesService.saveBreaks(
+      request.authUser.id,
+      id,
+      {
+        breakCount: body.breakCount,
+        breakDurationMinutes: body.breakDurationMinutes,
+      },
+    );
+
+    return ModeBreaksResponseDto.fromEntity(settings);
   }
 }

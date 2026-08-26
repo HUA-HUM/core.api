@@ -25,6 +25,8 @@ import { CreateRitualDto } from '../../dtos/rituals/CreateRitualDto';
 import { UpdateRitualDto } from '../../dtos/rituals/UpdateRitualDto';
 import { ReplaceRitualBlockedItemsDto } from '../../dtos/ritualBlockedItems/ReplaceRitualBlockedItemsDto';
 import { RitualBlockedItemResponseDto } from '../../dtos/ritualBlockedItems/RitualBlockedItemResponseDto';
+import { SaveRitualBreaksDto } from '../../dtos/ritualBreaks/SaveRitualBreaksDto';
+import { RitualBreaksResponseDto } from '../../dtos/ritualBreaks/RitualBreaksResponseDto';
 import { RitualResponseDto } from '../../dtos/rituals/RitualResponseDto';
 import { DeleteRitualDto } from '../../dtos/rituals/DeleteRitualDto';
 import { RitualsService } from '../../services/rituals/RitualsService';
@@ -208,6 +210,42 @@ export class RitualsController {
     });
 
     return items.map((item) => RitualBlockedItemResponseDto.fromEntity(item));
+  }
+
+  @Get(':id/breaks')
+  @ApiOperation({ summary: 'Get break settings for a ritual' })
+  @ApiResponse({ status: 200, type: RitualBreaksResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async getBreaks(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+  ): Promise<RitualBreaksResponseDto> {
+    const settings = await this.ritualsService.getBreaks(
+      request.authUser.id,
+      id,
+    );
+    return RitualBreaksResponseDto.fromEntity(settings);
+  }
+
+  @Post(':id/breaks')
+  @ApiOperation({ summary: 'Save break settings for a ritual' })
+  @ApiResponse({ status: 201, type: RitualBreaksResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async saveBreaks(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: SaveRitualBreaksDto,
+  ): Promise<RitualBreaksResponseDto> {
+    const settings = await this.ritualsService.saveBreaks(
+      request.authUser.id,
+      id,
+      {
+        breakCount: body.breakCount,
+        breakDurationMinutes: body.breakDurationMinutes,
+      },
+    );
+
+    return RitualBreaksResponseDto.fromEntity(settings);
   }
 
   @Post()

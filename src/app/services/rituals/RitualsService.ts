@@ -28,6 +28,16 @@ import {
 } from '../../../core/entities/ritualBlockedItems/RitualBlockedItem';
 import { RitualProtectionError } from '../../../core/interactors/rituals/RitualProtectionError';
 import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
+import { GetRitualBreaksInteractor } from '../../../core/interactors/ritualBreaks/GetRitualBreaksInteractor';
+import { SaveRitualBreaksInteractor } from '../../../core/interactors/ritualBreaks/SaveRitualBreaksInteractor';
+import { RitualBreakSettings } from '../../../core/entities/ritualBreaks/RitualBreakSettings';
+
+const DEFAULT_BREAK_DURATION_MINUTES = 5;
+
+export interface SaveRitualBreaksServiceData {
+  breakCount: number;
+  breakDurationMinutes?: number;
+}
 
 export interface ReplaceRitualBlockedItemServiceData {
   platform?: RitualBlockedItemPlatform;
@@ -84,6 +94,8 @@ export class RitualsService {
     private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
     private readonly listRitualBlockedItemsInteractor: ListRitualBlockedItemsInteractor,
     private readonly replaceRitualBlockedItemsInteractor: ReplaceRitualBlockedItemsInteractor,
+    private readonly getRitualBreaksInteractor: GetRitualBreaksInteractor,
+    private readonly saveRitualBreaksInteractor: SaveRitualBreaksInteractor,
   ) {}
 
   async listByUserId(userId: string): Promise<Ritual[]> {
@@ -253,6 +265,60 @@ export class RitualsService {
       targetPlatform,
       normalizedItems,
     );
+  }
+
+  async getBreaks(userId: string, ritualId: string): Promise<RitualBreakSettings> {
+    await this.getById(userId, ritualId);
+
+    const settings = await this.getRitualBreaksInteractor.execute(ritualId);
+
+    return (
+      settings ?? {
+        ritualId,
+        breakCount: 0,
+        breakDurationMinutes: DEFAULT_BREAK_DURATION_MINUTES,
+      }
+    );
+  }
+
+  async saveBreaks(
+    userId: string,
+    ritualId: string,
+    data: SaveRitualBreaksServiceData,
+  ): Promise<RitualBreakSettings> {
+    await this.getById(userId, ritualId);
+    this.validateBreaksData(data);
+
+    return this.saveRitualBreaksInteractor.execute({
+      ritualId,
+      breakCount: data.breakCount,
+      breakDurationMinutes:
+        data.breakCount > 0
+          ? (data.breakDurationMinutes as number)
+          : (data.breakDurationMinutes ?? DEFAULT_BREAK_DURATION_MINUTES),
+    });
+  }
+
+  private validateBreaksData(data: SaveRitualBreaksServiceData): void {
+    if (
+      !Number.isInteger(data.breakCount) ||
+      data.breakCount < 0 ||
+      data.breakCount > 3
+    ) {
+      throw new BadRequestException(
+        'breakCount must be an integer between 0 and 3',
+      );
+    }
+
+    if (data.breakCount > 0) {
+      const duration = data.breakDurationMinutes;
+
+      if (!Number.isInteger(duration) || duration! < 1 || duration! > 5) {
+        throw new BadRequestException(
+          'breakDurationMinutes must be an integer between 1 and 5 when breakCount is greater than 0',
+        );
+      }
+    }
   }
 
   private validateRequiredText(value: string, fieldName: string): void {
