@@ -5,6 +5,7 @@ import {
   CreateRitualData,
   Ritual,
   RitualStatus,
+  UpdateRitualData,
 } from '../../../../core/entities/rituals/Ritual';
 import { IRitualsRepository } from '../../../../core/adapters/repositories/rituals/IRitualsRepository';
 
@@ -169,6 +170,70 @@ export class SQLRitualsRepository implements IRitualsRepository {
     );
 
     return rows.map((row) => this.mapRowToRitual(row));
+  }
+
+  async updateById(id: string, data: UpdateRitualData): Promise<Ritual | null> {
+    const rows = await this.queryRows<RitualRow>(
+      `
+        update rituals
+        set
+          title = $2,
+          description = $3,
+          icon = $4,
+          duration_minutes = $5,
+          weekdays = $6,
+          start_time = $7,
+          end_time = $8,
+          app_count = $9,
+          category_count = $10,
+          domain_count = $11,
+          selection_digest = $12,
+          is_protected = $13,
+          nfc_unlock_enabled = $14,
+          password_hash = $15,
+          updated_at = now()
+        where id = $1
+        returning
+          id,
+          user_id as "userId",
+          title,
+          description,
+          icon,
+          duration_minutes as "durationMinutes",
+          weekdays,
+          start_time as "startTime",
+          end_time as "endTime",
+          app_count as "appCount",
+          category_count as "categoryCount",
+          domain_count as "domainCount",
+          selection_digest as "selectionDigest",
+          is_protected as "isProtected",
+          nfc_unlock_enabled as "nfcUnlockEnabled",
+          password_hash as "passwordHash",
+          status,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+      `,
+      [
+        id,
+        data.title,
+        data.description ?? null,
+        data.icon,
+        data.durationMinutes,
+        data.weekdays,
+        data.startTime ?? null,
+        data.endTime ?? null,
+        data.appCount,
+        data.categoryCount,
+        data.domainCount,
+        data.selectionDigest ?? null,
+        data.isProtected,
+        data.nfcUnlockEnabled,
+        data.passwordHash ?? null,
+      ],
+    );
+
+    return rows[0] ? this.mapRowToRitual(rows[0]) : null;
   }
 
   async deleteById(id: string): Promise<void> {

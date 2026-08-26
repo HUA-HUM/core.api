@@ -13,6 +13,7 @@ export const ApiErrorCode = {
   nfcTagRequired: 'NFC_TAG_REQUIRED',
   ritualBlockedItemsRequired: 'RITUAL_BLOCKED_ITEMS_REQUIRED',
   ritualNotActive: 'RITUAL_NOT_ACTIVE',
+  ritualSessionActive: 'RITUAL_SESSION_ACTIVE',
 } as const;
 
 export function apiError(code: string, message: string) {

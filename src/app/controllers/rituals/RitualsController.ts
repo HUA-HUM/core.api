@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -21,6 +22,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CreateRitualDto } from '../../dtos/rituals/CreateRitualDto';
+import { UpdateRitualDto } from '../../dtos/rituals/UpdateRitualDto';
 import { ReplaceRitualBlockedItemsDto } from '../../dtos/ritualBlockedItems/ReplaceRitualBlockedItemsDto';
 import { RitualBlockedItemResponseDto } from '../../dtos/ritualBlockedItems/RitualBlockedItemResponseDto';
 import { RitualResponseDto } from '../../dtos/rituals/RitualResponseDto';
@@ -61,6 +63,64 @@ export class RitualsController {
     @Param('id') id: string,
   ): Promise<RitualResponseDto> {
     const ritual = await this.ritualsService.getById(request.authUser.id, id);
+    return RitualResponseDto.fromEntity(ritual);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update ritual configuration' })
+  @ApiHeader({ name: 'Idempotency-Key', required: false })
+  @ApiResponse({ status: 200, type: RitualResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  async update(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: UpdateRitualDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ): Promise<RitualResponseDto> {
+    const ritual = await this.idempotencyService.execute({
+      userId: request.authUser.id,
+      key: idempotencyKey,
+      operation: 'update_ritual_configuration',
+      request: {
+        ritualId: id,
+        title: body.title,
+        description: body.description ?? null,
+        icon: body.icon,
+        durationMinutes: body.durationMinutes,
+        weekdays: body.weekdays,
+        startTime: body.startTime ?? null,
+        endTime: body.endTime ?? null,
+        appCount: body.appCount,
+        categoryCount: body.categoryCount,
+        domainCount: body.domainCount,
+        selectionDigest: body.selectionDigest ?? null,
+        isProtected: body.isProtected ?? false,
+        nfcUnlockEnabled: body.nfcUnlockEnabled ?? false,
+        passwordProvided: Boolean(body.password),
+      },
+      resourceType: 'ritual',
+      execute: () =>
+        this.ritualsService.update(request.authUser.id, id, {
+          title: body.title,
+          description: body.description,
+          icon: body.icon,
+          durationMinutes: body.durationMinutes,
+          weekdays: body.weekdays,
+          startTime: body.startTime,
+          endTime: body.endTime,
+          appCount: body.appCount,
+          categoryCount: body.categoryCount,
+          domainCount: body.domainCount,
+          selectionDigest: body.selectionDigest,
+          isProtected: body.isProtected,
+          nfcUnlockEnabled: body.nfcUnlockEnabled,
+          password: body.password,
+        }),
+      replay: (resourceId) =>
+        this.ritualsService.getById(request.authUser.id, resourceId),
+      resourceId: (result) => result.id,
+    });
+
     return RitualResponseDto.fromEntity(ritual);
   }
 

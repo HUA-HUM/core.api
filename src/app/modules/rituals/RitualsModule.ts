@@ -5,9 +5,15 @@ import {
   RITUALS_REPOSITORY,
 } from '../../../core/adapters/repositories/rituals/IRitualsRepository';
 import { CreateRitualInteractor } from '../../../core/interactors/rituals/CreateRitualInteractor';
+import { UpdateRitualInteractor } from '../../../core/interactors/rituals/UpdateRitualInteractor';
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
 import { DeleteRitualInteractor } from '../../../core/interactors/rituals/DeleteRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
+import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
+import {
+  IRitualSessionsRepository,
+  RITUAL_SESSIONS_REPOSITORY,
+} from '../../../core/adapters/repositories/ritualSessions/IRitualSessionsRepository';
 import {
   IRitualBlockedItemsRepository,
   RITUAL_BLOCKED_ITEMS_REPOSITORY,
@@ -53,6 +59,20 @@ import { ScryptRitualPasswordHasher } from '../../services/rituals/ScryptRitualP
         passwordHasher: IRitualPasswordHasher,
       ) => new DeleteRitualInteractor(ritualsRepository, passwordHasher),
       inject: [RITUALS_REPOSITORY, RITUAL_PASSWORD_HASHER],
+    },
+    {
+      provide: UpdateRitualInteractor,
+      useFactory: (
+        ritualsRepository: IRitualsRepository,
+        passwordHasher: IRitualPasswordHasher,
+      ) => new UpdateRitualInteractor(ritualsRepository, passwordHasher),
+      inject: [RITUALS_REPOSITORY, RITUAL_PASSWORD_HASHER],
+    },
+    {
+      provide: GetActiveRitualSessionInteractor,
+      useFactory: (ritualSessionsRepository: IRitualSessionsRepository) =>
+        new GetActiveRitualSessionInteractor(ritualSessionsRepository),
+      inject: [RITUAL_SESSIONS_REPOSITORY],
     },
     {
       provide: RITUAL_PASSWORD_HASHER,

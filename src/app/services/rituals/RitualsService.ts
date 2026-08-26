@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -9,9 +10,14 @@ import {
   CreateRitualInteractor,
   CreateRitualInteractorData,
 } from '../../../core/interactors/rituals/CreateRitualInteractor';
+import {
+  UpdateRitualInteractor,
+  UpdateRitualInteractorData,
+} from '../../../core/interactors/rituals/UpdateRitualInteractor';
 import { GetRitualInteractor } from '../../../core/interactors/rituals/GetRitualInteractor';
 import { DeleteRitualInteractor } from '../../../core/interactors/rituals/DeleteRitualInteractor';
 import { ListUserRitualsInteractor } from '../../../core/interactors/rituals/ListUserRitualsInteractor';
+import { GetActiveRitualSessionInteractor } from '../../../core/interactors/ritualSessions/GetActiveRitualSessionInteractor';
 import { ListRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ListRitualBlockedItemsInteractor';
 import { ReplaceRitualBlockedItemsInteractor } from '../../../core/interactors/ritualBlockedItems/ReplaceRitualBlockedItemsInteractor';
 import {
@@ -21,6 +27,7 @@ import {
   RitualBlockedItemType,
 } from '../../../core/entities/ritualBlockedItems/RitualBlockedItem';
 import { RitualProtectionError } from '../../../core/interactors/rituals/RitualProtectionError';
+import { ApiErrorCode, apiError } from '../../errors/ApiErrorResponse';
 
 export interface ReplaceRitualBlockedItemServiceData {
   platform?: RitualBlockedItemPlatform;
@@ -49,13 +56,32 @@ export interface CreateRitualServiceData {
   password?: string | null;
 }
 
+export interface UpdateRitualServiceData {
+  title: string;
+  description?: string | null;
+  icon: string;
+  durationMinutes: number;
+  weekdays: number[];
+  startTime?: string | null;
+  endTime?: string | null;
+  appCount: number;
+  categoryCount: number;
+  domainCount: number;
+  selectionDigest?: string | null;
+  isProtected?: boolean;
+  nfcUnlockEnabled?: boolean;
+  password?: string | null;
+}
+
 @Injectable()
 export class RitualsService {
   constructor(
     private readonly createRitualInteractor: CreateRitualInteractor,
+    private readonly updateRitualInteractor: UpdateRitualInteractor,
     private readonly listUserRitualsInteractor: ListUserRitualsInteractor,
     private readonly getRitualInteractor: GetRitualInteractor,
     private readonly deleteRitualInteractor: DeleteRitualInteractor,
+    private readonly getActiveRitualSessionInteractor: GetActiveRitualSessionInteractor,
     private readonly listRitualBlockedItemsInteractor: ListRitualBlockedItemsInteractor,
     private readonly replaceRitualBlockedItemsInteractor: ReplaceRitualBlockedItemsInteractor,
   ) {}
@@ -103,6 +129,63 @@ export class RitualsService {
     };
 
     return this.createRitualInteractor.execute(createRitualData);
+  }
+
+  async update(
+    userId: string,
+    id: string,
+    data: UpdateRitualServiceData,
+  ): Promise<Ritual> {
+    const ritual = await this.getById(userId, id);
+
+    const activeSession = await this.getActiveRitualSessionInteractor.execute(
+      userId,
+    );
+    if (activeSession && activeSession.ritualId === id) {
+      throw this.ritualSessionActiveConflict();
+    }
+
+    this.validateRitualFields(data);
+
+    const updateRitualData: UpdateRitualInteractorData = {
+      title: data.title.trim(),
+      description: this.normalizeNullableText(data.description),
+      icon: data.icon.trim(),
+      durationMinutes: data.durationMinutes,
+      weekdays: data.weekdays,
+      startTime: this.normalizeNullableText(data.startTime),
+      endTime: this.normalizeNullableText(data.endTime),
+      appCount: data.appCount,
+      categoryCount: data.categoryCount,
+      domainCount: data.domainCount,
+      selectionDigest: this.normalizeNullableText(data.selectionDigest),
+      isProtected: data.isProtected ?? false,
+      nfcUnlockEnabled: data.nfcUnlockEnabled ?? false,
+      password: data.password,
+    };
+
+    try {
+      const updatedRitual = await this.updateRitualInteractor.execute(
+        ritual,
+        updateRitualData,
+      );
+
+      if (!updatedRitual) {
+        throw new NotFoundException('ritual not found');
+      }
+
+      return updatedRitual;
+    } catch (error) {
+      if (error instanceof RitualProtectionError) {
+        throw new ForbiddenException(
+          error.code === 'RITUAL_PASSWORD_REQUIRED'
+            ? 'ritual password is required'
+            : 'invalid ritual password',
+        );
+      }
+
+      throw error;
+    }
   }
 
   async delete(
@@ -183,6 +266,28 @@ export class RitualsService {
       throw new BadRequestException('userId is required');
     }
 
+    this.validateRitualFields(data);
+
+    if (data.isProtected) {
+      const password = data.password?.trim() ?? '';
+
+      if (password.length < 4 || password.length > 72) {
+        throw new BadRequestException(
+          'password must contain between 4 and 72 characters',
+        );
+      }
+    }
+  }
+
+  private validateRitualFields(data: {
+    title: string;
+    icon: string;
+    durationMinutes: number;
+    weekdays: number[];
+    appCount: number;
+    categoryCount: number;
+    domainCount: number;
+  }): void {
     if (!data.title.trim()) {
       throw new BadRequestException('title is required');
     }
@@ -214,16 +319,15 @@ export class RitualsService {
         'selection counters must be greater than or equal to 0',
       );
     }
+  }
 
-    if (data.isProtected) {
-      const password = data.password?.trim() ?? '';
-
-      if (password.length < 4 || password.length > 72) {
-        throw new BadRequestException(
-          'password must contain between 4 and 72 characters',
-        );
-      }
-    }
+  private ritualSessionActiveConflict(): ConflictException {
+    return new ConflictException(
+      apiError(
+        ApiErrorCode.ritualSessionActive,
+        'cannot edit a ritual while it has an active session',
+      ),
+    );
   }
 
   private normalizeBlockedItems(
