@@ -272,6 +272,19 @@ export class SQLRitualsRepository implements IRitualsRepository {
 
   private async queryRows<T>(sql: string, params: unknown[]): Promise<T[]> {
     const result: unknown = await this.entityManager.query(sql, params);
+
+    // For non-SELECT statements (e.g. UPDATE ... RETURNING), pg/TypeORM
+    // returns a [rows, affectedRowCount] tuple instead of the rows array
+    // directly. Detect and unwrap it, matching SQLModesRepository.
+    if (
+      Array.isArray(result) &&
+      result.length === 2 &&
+      Array.isArray(result[0]) &&
+      typeof result[1] === 'number'
+    ) {
+      return result[0] as T[];
+    }
+
     return result as T[];
   }
 }

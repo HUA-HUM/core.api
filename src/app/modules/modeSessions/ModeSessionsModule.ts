@@ -11,6 +11,7 @@ import { ListUserModeSessionsInteractor } from '../../../core/interactors/modeSe
 import { StartModeSessionInteractor } from '../../../core/interactors/modeSessions/StartModeSessionInteractor';
 import { ModeSessionsController } from '../../controllers/modeSessions/ModeSessionsController';
 import { ModeSessionsService } from '../../services/modeSessions/ModeSessionsService';
+import { InitialModeSessionsService } from '../../services/modeSessions/InitialModeSessionsService';
 import { JwtAuthModule } from '../jwtAuth/JwtAuthModule';
 import { ModesModule } from '../modes/ModesModule';
 import {
@@ -74,6 +75,7 @@ import { NfcTagsModule } from '../nfcTags/NfcTagsModule';
       inject: [MODE_SESSIONS_REPOSITORY],
     },
     ModeSessionsService,
+    InitialModeSessionsService,
   ],
   exports: [ModeSessionsService],
 })

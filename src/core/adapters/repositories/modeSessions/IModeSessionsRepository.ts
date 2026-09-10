@@ -8,6 +8,7 @@ import { ModeSessionSummary } from '../../../entities/modeSessions/ModeSessionSu
 export const MODE_SESSIONS_REPOSITORY = Symbol('MODE_SESSIONS_REPOSITORY');
 
 export interface IModeSessionsRepository {
+  ensureSchema(): Promise<void>;
   create(data: StartModeSessionData): Promise<ModeSession>;
   findActiveByUserId(userId: string): Promise<ModeSession | null>;
   findById(id: string): Promise<ModeSession | null>;
