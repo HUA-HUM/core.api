@@ -170,6 +170,26 @@ describe('RitualsService breaks', () => {
     });
   });
 
+  it.each([1, 3, 5, 10, 15])('accepts a %i-minute break', async (duration) => {
+    await service.saveBreaks('user-id', 'ritual-id', {
+      breakCount: 2,
+      breakDurationMinutes: duration,
+    });
+    expect(saveRitualBreaksInteractor.execute).toHaveBeenCalledWith({
+      ritualId: 'ritual-id',
+      breakCount: 2,
+      breakDurationMinutes: duration,
+    });
+  });
+
+  it.each([0, 16, 1.5])('rejects invalid duration %s', async (duration) => {
+    await expect(service.saveBreaks('user-id', 'ritual-id', {
+      breakCount: 1,
+      breakDurationMinutes: duration,
+    })).rejects.toBeInstanceOf(BadRequestException);
+    expect(saveRitualBreaksInteractor.execute).not.toHaveBeenCalled();
+  });
+
   it('rejects a breakCount outside 0-3', async () => {
     await expect(
       service.saveBreaks('user-id', 'ritual-id', { breakCount: 4 }),
@@ -183,11 +203,11 @@ describe('RitualsService breaks', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('rejects a breakDurationMinutes outside 1-5', async () => {
+  it('rejects a breakDurationMinutes outside 1-15', async () => {
     await expect(
       service.saveBreaks('user-id', 'ritual-id', {
         breakCount: 1,
-        breakDurationMinutes: 6,
+        breakDurationMinutes: 16,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });

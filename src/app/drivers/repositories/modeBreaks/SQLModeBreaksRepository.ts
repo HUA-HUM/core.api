@@ -29,9 +29,11 @@ export class SQLModeBreaksRepository implements IModeBreaksRepository {
         created_at timestamptz not null default now(),
         updated_at timestamptz not null default now(),
         check (break_count between 0 and 3),
-        check (break_duration_minutes between 1 and 5)
+        constraint mode_breaks_duration_1_15_check check (break_duration_minutes between 1 and 15)
       )
     `);
+    // Existing installations are upgraded only by the reviewed manual migration.
+    // Application startup must never replace production constraints.
   }
 
   async findByModeId(modeId: string): Promise<ModeBreakSettings | null> {

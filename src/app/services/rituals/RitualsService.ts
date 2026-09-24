@@ -313,9 +313,9 @@ export class RitualsService {
     if (data.breakCount > 0) {
       const duration = data.breakDurationMinutes;
 
-      if (!Number.isInteger(duration) || duration! < 1 || duration! > 5) {
+      if (!Number.isInteger(duration) || duration! < 1 || duration! > 15) {
         throw new BadRequestException(
-          'breakDurationMinutes must be an integer between 1 and 5 when breakCount is greater than 0',
+          'breakDurationMinutes must be an integer between 1 and 15 when breakCount is greater than 0',
         );
       }
     }

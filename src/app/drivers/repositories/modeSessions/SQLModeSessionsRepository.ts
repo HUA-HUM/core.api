@@ -52,42 +52,10 @@ export class SQLModeSessionsRepository implements IModeSessionsRepository {
     private readonly entityManager: EntityManager,
   ) {}
 
-  async ensureSchema(): Promise<void> {
-    // Widens the legacy end_source check (which never included 'schedule')
-    // to match ModeSessionEndSource. Runs on every boot and is idempotent:
-    // it drops whichever auto-named check constraint still excludes
-    // 'schedule', then (re)adds a fixed-name constraint allowing it.
-    // Without this, RitualSessionsService.finishModePreemptedBySchedule
-    // always fails to close the preempted mode session.
-    await this.entityManager.query(`
-      DO $$
-      DECLARE
-        legacy_constraint text;
-      BEGIN
-        SELECT con.conname INTO legacy_constraint
-        FROM pg_constraint con
-        JOIN pg_class rel ON rel.oid = con.conrelid
-        WHERE rel.relname = 'mode_sessions'
-          AND con.contype = 'c'
-          AND pg_get_constraintdef(con.oid) ILIKE '%end_source%'
-          AND pg_get_constraintdef(con.oid) NOT ILIKE '%schedule%'
-        LIMIT 1;
-
-        IF legacy_constraint IS NOT NULL THEN
-          EXECUTE format(
-            'ALTER TABLE mode_sessions DROP CONSTRAINT %I',
-            legacy_constraint
-          );
-        END IF;
-
-        ALTER TABLE mode_sessions
-          DROP CONSTRAINT IF EXISTS mode_sessions_end_source_check;
-
-        ALTER TABLE mode_sessions
-          ADD CONSTRAINT mode_sessions_end_source_check
-          CHECK (end_source IN ('manual', 'nfc', 'emergency', 'schedule'));
-      END $$;
-    `);
+  ensureSchema(): Promise<void> {
+    // Existing schema upgrades are manual. Production already accepts schedule.
+    // Do not reacquire table locks or recreate validated checks on every boot.
+    return Promise.resolve();
   }
 
   async create(data: StartModeSessionData): Promise<ModeSession> {

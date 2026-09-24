@@ -30,7 +30,9 @@ export class SQLAppUpdatesRepository implements IAppUpdatesRepository {
   async ensureSchema(): Promise<void> {
     await this.entityManager.query(`
       create table if not exists app_update_configurations (
-        platform varchar(20) primary key,
+        platform varchar(20) primary key
+          constraint app_update_configurations_platform_check
+          check (platform IN ('ios', 'android')),
         latest_version varchar(40) not null,
         latest_build integer not null check (latest_build > 0),
         minimum_build integer not null check (minimum_build > 0),
@@ -43,39 +45,8 @@ export class SQLAppUpdatesRepository implements IAppUpdatesRepository {
       )
     `);
 
-    // Widens the legacy ios-only platform check to ios/android. Runs on every
-    // boot and is idempotent: it drops whichever auto-named check constraint
-    // still restricts platform to a single value, then (re)adds a fixed-name
-    // constraint allowing both platforms.
-    await this.entityManager.query(`
-      DO $$
-      DECLARE
-        legacy_constraint text;
-      BEGIN
-        SELECT con.conname INTO legacy_constraint
-        FROM pg_constraint con
-        JOIN pg_class rel ON rel.oid = con.conrelid
-        WHERE rel.relname = 'app_update_configurations'
-          AND con.contype = 'c'
-          AND pg_get_constraintdef(con.oid) ILIKE '%platform%'
-          AND pg_get_constraintdef(con.oid) NOT ILIKE '%android%'
-        LIMIT 1;
-
-        IF legacy_constraint IS NOT NULL THEN
-          EXECUTE format(
-            'ALTER TABLE app_update_configurations DROP CONSTRAINT %I',
-            legacy_constraint
-          );
-        END IF;
-
-        ALTER TABLE app_update_configurations
-          DROP CONSTRAINT IF EXISTS app_update_configurations_platform_check;
-
-        ALTER TABLE app_update_configurations
-          ADD CONSTRAINT app_update_configurations_platform_check
-          CHECK (platform IN ('ios', 'android'));
-      END $$;
-    `);
+    // Existing installations are upgraded manually, never by replacing checks
+    // during startup. The platform check above applies only to new tables.
   }
 
   async findByPlatform(
