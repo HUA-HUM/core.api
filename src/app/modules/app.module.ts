@@ -8,6 +8,7 @@ import { ModeSessionsModule } from './modeSessions/ModeSessionsModule';
 import { NfcTagsModule } from './nfcTags/NfcTagsModule';
 import { InternalAnalyticsModule } from './internalAnalytics/InternalAnalyticsModule';
 import { FocusMetricsModule } from './focusMetrics/FocusMetricsModule';
+import { RankingModule } from './ranking/RankingModule';
 import { FocusSessionsModule } from './focusSessions/FocusSessionsModule';
 import { LandingWaitlistLeadsModule } from './landingWaitlistLeads/LandingWaitlistLeadsModule';
 import { IdempotencyModule } from './idempotency/IdempotencyModule';
@@ -27,6 +28,7 @@ import { SupportResetsModule } from './supportResets/SupportResetsModule';
     NfcTagsModule,
     InternalAnalyticsModule,
     FocusMetricsModule,
+    RankingModule,
     FocusSessionsModule,
     LandingWaitlistLeadsModule,
     LegalDocumentsModule,

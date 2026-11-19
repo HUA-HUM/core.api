@@ -9,6 +9,7 @@ import { MODE_BLOCKED_ITEMS_REPOSITORY } from '../../../core/adapters/repositori
 import { MODE_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/modeSessions/IModeSessionsRepository';
 import { NFC_TAGS_REPOSITORY } from '../../../core/adapters/repositories/nfcTags/INfcTagsRepository';
 import { INTERNAL_ANALYTICS_REPOSITORY } from '../../../core/adapters/repositories/internalAnalytics/IInternalAnalyticsRepository';
+import { RANKING_REPOSITORY } from '../../../core/adapters/repositories/ranking/IRankingRepository';
 import { FOCUS_METRICS_REPOSITORY } from '../../../core/adapters/repositories/focusMetrics/IFocusMetricsRepository';
 import { FOCUS_SESSIONS_REPOSITORY } from '../../../core/adapters/repositories/focusSessions/IFocusSessionsRepository';
 import { LANDING_WAITLIST_LEADS_REPOSITORY } from '../../../core/adapters/repositories/landingWaitlistLeads/ILandingWaitlistLeadsRepository';
@@ -23,6 +24,7 @@ import { SQLModeBlockedItemsRepository } from '../../drivers/repositories/modeBl
 import { SQLModeSessionsRepository } from '../../drivers/repositories/modeSessions/SQLModeSessionsRepository';
 import { SQLNfcTagsRepository } from '../../drivers/repositories/nfcTags/SQLNfcTagsRepository';
 import { SQLInternalAnalyticsRepository } from '../../drivers/repositories/internalAnalytics/SQLInternalAnalyticsRepository';
+import { SQLRankingRepository } from '../../drivers/repositories/ranking/SQLRankingRepository';
 import { SQLFocusMetricsRepository } from '../../drivers/repositories/focusMetrics/SQLFocusMetricsRepository';
 import { SQLFocusSessionsRepository } from '../../drivers/repositories/focusSessions/SQLFocusSessionsRepository';
 import { SQLLandingWaitlistLeadsRepository } from '../../drivers/repositories/landingWaitlistLeads/SQLLandingWaitlistLeadsRepository';
@@ -78,6 +80,10 @@ import { SQLAppUpdatesRepository } from '../../drivers/repositories/appUpdates/S
       useClass: SQLFocusMetricsRepository,
     },
     {
+      provide: RANKING_REPOSITORY,
+      useClass: SQLRankingRepository,
+    },
+    {
       provide: FOCUS_SESSIONS_REPOSITORY,
       useClass: SQLFocusSessionsRepository,
     },
@@ -108,6 +114,7 @@ import { SQLAppUpdatesRepository } from '../../drivers/repositories/appUpdates/S
     NFC_TAGS_REPOSITORY,
     INTERNAL_ANALYTICS_REPOSITORY,
     FOCUS_METRICS_REPOSITORY,
+    RANKING_REPOSITORY,
     FOCUS_SESSIONS_REPOSITORY,
     LANDING_WAITLIST_LEADS_REPOSITORY,
     EMERGENCY_UNLOCKS_REPOSITORY,

@@ -10,6 +10,17 @@ export const env = {
   internalAnalyticsApiKey: process.env.INTERNAL_ANALYTICS_API_KEY,
   analyticsTimeZone:
     process.env.ANALYTICS_TIME_ZONE ?? 'America/Argentina/Buenos_Aires',
+  // Internal/test accounts hidden from the public ranking (comma-separated).
+  rankingExcludedEmails: Array.from(
+    new Set(
+      [
+        process.env.APP_REVIEW_ACCOUNT_EMAIL ?? 'hello@rituo.io',
+        ...(process.env.RANKING_EXCLUDED_EMAILS ?? '').split(','),
+      ]
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ),
   corsOrigins: (process.env.CORS_ORIGINS ?? '')
     .split(',')
     .map((origin) => origin.trim())
